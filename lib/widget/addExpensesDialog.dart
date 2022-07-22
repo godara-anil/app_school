@@ -72,7 +72,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               buildCashBank(),
               SizedBox(height: 8),
               buildDivider(),
-              buildRadioButtons(),
+              //buildRadioButtons(),
+              buildChoiceChips(),
             ],
           ),
         ),
@@ -134,6 +135,33 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         value: false,
         groupValue: isExpense,
         onChanged: (value) => setState(() => isExpense = value!),
+      ),
+    ],
+  );
+  Widget buildChoiceChips() => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    children: [
+      ChoiceChip(label: Text(
+        "Income",
+    style: TextStyle(
+      fontSize: 18.0,
+      color: isExpense ? Colors.black : Colors.white,
+    ),
+  ),
+      selectedColor: Colors.lightGreen,
+      onSelected: (val) => setState(() => isExpense = !val),
+      selected: isExpense ? false : true,
+      ),
+      ChoiceChip(label: Text(
+        "Expense",
+        style: TextStyle(
+          fontSize: 18.0,
+          color: isExpense ? Colors.white : Colors.black,
+        ),
+      ),
+        selectedColor: Colors.redAccent,
+        onSelected: (val) => setState(() => isExpense = val),
+        selected: isExpense ? true : false,
       ),
     ],
   );
