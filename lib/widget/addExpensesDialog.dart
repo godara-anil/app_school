@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 class AddExpenseDialog extends StatefulWidget {
   final Expenses? expenses;
   final incomeOrExpense;
-  final Function(double amount, String category, bool isExpense, DateTime date) onClickDone;
+  final Function(double amount, String category, bool isExpense, DateTime date, bool isBank) onClickDone;
   const AddExpenseDialog({
     Key? key,
     this.expenses,
@@ -23,6 +23,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final amountController = TextEditingController();
   DateTime date = DateTime.now();
   bool isExpense = true;
+  bool isBank = false;
 
   @override
   void initState (){
@@ -34,6 +35,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       amountController.text = expenses.amount.toString();
       isExpense = expenses.isExpense;
       date = expenses.date;
+      isBank = expenses.isBank!;
     }
     else {
       isExpense = widget.incomeOrExpense;
@@ -66,6 +68,10 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               SizedBox(height: 8),
               buildDate(formatedDate),
               SizedBox(height: 8),
+              buildDivider(),
+              buildCashBank(),
+              SizedBox(height: 8),
+              buildDivider(),
               buildRadioButtons(),
             ],
           ),
@@ -87,9 +93,10 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     name != null && name.isEmpty ? 'Enter a name' : null,
   );
   Widget buildDate(formatedDate) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     children: [
       Text('$formatedDate'),
-      FlatButton(onPressed: () async {
+      TextButton(onPressed: () async {
         DateTime? newDate  = await showDatePicker(context: context,
             initialDate: date,
             firstDate: DateTime(2020),
@@ -130,7 +137,33 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       ),
     ],
   );
-
+  Widget buildCashBank() => Row(
+    children: [
+      Expanded(
+        child: RadioListTile<bool>(
+          title: Text('Cash'),
+          value: false,
+          groupValue: isBank,
+          onChanged: (value) => setState(() => isBank = value!),
+        ),
+      ),
+      Expanded(
+        child: RadioListTile<bool>(
+          title: Text('Bank'),
+          value: true,
+          groupValue: isBank,
+          onChanged: (value) => setState(() => isBank = value!),
+        ),
+      ),
+    ],
+  );
+  Widget buildDivider() => const Divider(
+    color: Colors.grey,
+    height: 5,
+    thickness: 1,
+    indent: 5,
+    endIndent: 5,
+  );
   Widget buildCancelButton(BuildContext context) => TextButton(
     child: Text('Cancel'),
     onPressed: () => Navigator.of(context).pop(),
@@ -148,7 +181,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           final name = nameController.text;
           final amount = double.tryParse(amountController.text) ?? 0;
 
-          widget.onClickDone(amount, name, isExpense, date);
+          widget.onClickDone(amount, name, isExpense, date, isBank);
 
           Navigator.of(context).pop();
         }

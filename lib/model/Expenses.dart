@@ -13,6 +13,8 @@ class Expenses extends HiveObject {
   late String category;
   @HiveField(5)
   late int? sessionKey;
+  @HiveField(6)
+  late bool? isBank = false;
 }
 @HiveType(typeId:1)
 class Sessions extends HiveObject {

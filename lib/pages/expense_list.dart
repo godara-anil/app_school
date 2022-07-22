@@ -22,9 +22,7 @@ class _expensesState extends State<expenses> {
   final amountController = TextEditingController();
   DateTime date = DateTime.now();
   bool isExpense = true;
- // final currentSession = getActiveSession.getSession().session;
   final currentSessionKey = getActiveSession.getSession()[0].key;
-  // var anil = {};
   DateTimeRange? _selectedDateRange;
 
   // This function will be triggered when the floating button is pressed
@@ -107,8 +105,6 @@ class _expensesState extends State<expenses> {
               .where((Expenses) => Expenses.date.isAfter(startDate))
               .where((Expenses) => Expenses.date.isBefore(endDate))
               .toList().cast<Expenses>();
-
-          // .where((Expenses) => Expenses.date.isAfter(_selectedDateRange.start) )
           transactions.sort((b, a )=> a.date.compareTo(b.date));
           return buildContent(transactions);
         },
@@ -166,6 +162,7 @@ class _expensesState extends State<expenses> {
     final color = transaction.isExpense ? Colors.red : Colors.green;
     final date = DateFormat.yMMMd().format(transaction.date);
     final amount = transaction.amount.toStringAsFixed(2);
+    final bankCash = transaction.isBank! ? "Bank" : "Cash";
     return Card(
       color: Colors.white,
       child: ExpansionTile(
@@ -176,10 +173,30 @@ class _expensesState extends State<expenses> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         subtitle: Text(date),
-        trailing: Text(
-          amount,
-          style: TextStyle(
-              color: color, fontWeight: FontWeight.bold, fontSize: 16),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              amount,
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            SizedBox(height: 8.0,),
+            Container(
+              decoration: BoxDecoration (
+                color: Colors.lightGreen,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: EdgeInsets.all(5.0),
+              child: Text(
+                bankCash,
+                style: TextStyle(
+                    fontSize: 13.0,
+                  color: Colors.white,
+                  ),
+              ),
+            )
+          ],
         ),
         children: [
           buildButtons(context, transaction),
@@ -198,8 +215,8 @@ class _expensesState extends State<expenses> {
             MaterialPageRoute(
               builder: (context) => AddExpenseDialog(
                 expenses: transaction,
-                onClickDone: (amount, name, isExpense, date) =>
-                    editTransaction(transaction, name, amount, isExpense, date),
+                onClickDone: (amount, name, isExpense, date, isBank) =>
+                    editTransaction(transaction, name, amount, isExpense, date, isBank),
               ),
             ),
           ),
@@ -214,13 +231,14 @@ class _expensesState extends State<expenses> {
       )
     ],
   );
-  Future addTransaction(double amount, String name, bool isExpense, DateTime date) async {
+  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank) async {
     final expenses = Expenses()
       ..amount = amount
       ..category = name
       ..date = date
       ..isExpense = isExpense
-      ..sessionKey = currentSessionKey;
+      ..sessionKey = currentSessionKey
+      ..isBank = isBank;
 
     final box = Boxes.getTransactions();
     box.add(expenses);
@@ -233,24 +251,43 @@ class _expensesState extends State<expenses> {
       String name,
       double amount,
       bool isExpense,
-      DateTime date
+      DateTime date,
+      bool isBank
       ) {
     transaction.category = name;
     transaction.amount = amount;
     transaction.isExpense = isExpense;
+    transaction.isBank = isBank;
     transaction.date = date;
-
-    // final box = Boxes.getTransactions();
-    // box.put(transaction.key, transaction);
-
     transaction.save();
   }
 
-  void deleteTransaction(Expenses transaction) {
+  void deleteTransaction(Expenses transaction) async{
     // final box = Boxes.getTransactions();
     // box.delete(transaction.key);
-
-    transaction.delete();
+    final response = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Warning'),
+        content: const Text('Are you sure you want to delete this transaction!'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    if(response != null && response == true) {
+       transaction.delete();
+      //print(response);
+    }
+   //
     //setState(() => transactions.remove(transaction));
   }
+
 }
