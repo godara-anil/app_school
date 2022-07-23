@@ -85,6 +85,7 @@ class _expensesState extends State<expenses> {
         ],
         backgroundColor: appBarColor,
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         onPressed: () => showDialog(
       context: context,
@@ -125,7 +126,7 @@ class _expensesState extends State<expenses> {
         0,
             (previousValue, transaction) => previousValue + transaction.amount,
       );
-      final newExpenseString = '${netExpense.toStringAsFixed(2)}';
+      final newExpenseString = '${netExpense.toStringAsFixed(0)}';
       final color = isExpense ? Colors.red : Colors.green;
 
       return Column(
@@ -161,7 +162,7 @@ class _expensesState extends State<expenses> {
       ) {
     final color = transaction.isExpense ? Colors.red : Colors.green;
     final date = DateFormat.yMMMd().format(transaction.date);
-    final amount = transaction.amount.toStringAsFixed(2);
+    final amount = transaction.amount.toStringAsFixed(0);
     final bankCash = transaction.isBank! ? "Bank" : "Cash";
     return Card(
       color: Colors.white,

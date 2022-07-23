@@ -8,6 +8,8 @@ import 'package:app_school/getActiveSession.dart';
 import 'package:app_school/widget/dataBackupRestore.dart';
 import 'package:app_school/pages/settings_sessions.dart';
 
+import '../widget/addExpensesDialog.dart';
+
 
 class dashboard extends StatefulWidget {
   @override
@@ -15,11 +17,38 @@ class dashboard extends StatefulWidget {
 }
 
 class _dashboardState extends State<dashboard> {
+  int currentSessionKey = 0;
   @override
   void dispose() {
     Hive.box('expenses').close();
     Hive.box('sessions').close();
     super.dispose();
+  }
+  double cashBalance = 0;
+  double bankBalance = 0;
+
+  getCashBankBalance(List<Expenses> transactions) {
+    cashBalance = 0;
+    bankBalance = 0;
+    for (Expenses data in transactions) {
+      if (data.isExpense) {
+        if (data.isBank!) {
+          bankBalance -= data.amount;
+        }
+        else {
+          cashBalance -= data.amount;
+        }
+      }
+      else {
+        if (data.isBank!) {
+          bankBalance += data.amount;
+        }
+        else {
+          cashBalance += data.amount;
+        }
+
+      }
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -55,6 +84,21 @@ class _dashboardState extends State<dashboard> {
             )
           ],
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => showDialog(
+        context: context,
+        builder: (context) => AddExpenseDialog(
+          incomeOrExpense : false,
+          onClickDone: addTransaction,
+        ),
+
+
+      ),
+          backgroundColor: Colors.green,
+          child: const Icon(Icons.add),
+
+        ),
         body: ValueListenableBuilder<Box<Expenses>>(
           valueListenable: Boxes.getTransactions().listenable(),
           builder: (context, box, _) {
@@ -62,15 +106,17 @@ class _dashboardState extends State<dashboard> {
             Expenses.sessionKey == currentSessionKey)
                 .toList().cast<Expenses>();
             // transactions.sort((b, a )=> a.date.compareTo(b.date));
+            getCashBankBalance(transactions);
             return buildContent(transactions);
           },
         ),
       );
+
   }
   Widget buildContent(List<Expenses> transactions) {
     if (transactions.isEmpty) {
       return Center(
-        child: FlatButton(
+        child: TextButton(
           child: Text(
           'No data yet click to Add!',
           style: TextStyle(fontSize: 24)),
@@ -102,25 +148,43 @@ class _dashboardState extends State<dashboard> {
       );
       final newExpenseString = '${netExpense.toStringAsFixed(0)}';
       final newIncomeString = '${netIncome.toStringAsFixed(0)}';
-
-     return Column(
+      return Column(
         children: [
           SizedBox(height: 24),
           Card(
-            child: ListTile(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.currency_rupee_rounded, color: Colors.white,),
-                  Text(
-                    "$newBalanceString",
-                     style: TextStyle(fontSize: 30.0, color: Colors.white,),),
-                ],
-              ),
-              subtitle: Text('Net Balance',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white),
-              ),
+            child: Column(
+              children: [
+                ListTile(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.currency_rupee_rounded, color: Colors.white,),
+                      Text(
+                        "$newBalanceString",
+                         style: TextStyle(fontSize: 30.0, color: Colors.white,),),
+                    ],
+                  ),
+                  subtitle: Text('Net Balance',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                SizedBox(height: 12),
+                Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        cardCash(
+                         cashBalance.toStringAsFixed(0)
+                        ),
+                        cardBank (
+                          bankBalance.toStringAsFixed(0)
+                        )
+                      ],
+                    ),
+                )
+              ],
             ),
             elevation: 8,
             color: color,
@@ -189,14 +253,114 @@ class _dashboardState extends State<dashboard> {
               ),
             ],
           ),
-          FlatButton(
-            onPressed: (){
-              dataBackup().backUp();
-            },
-            child: Text('Data Backup'),
-          )
+
        ],
       );
     }
+  }
+  Widget cardCash(String value) {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white70,
+            borderRadius: BorderRadius.circular(
+              20.0,
+            ),
+          ),
+          padding: EdgeInsets.all(
+            6.0,
+          ),
+          child: Icon(
+            Icons.currency_rupee,
+            size: 28.0,
+            color: Colors.green[700],
+          ),
+          margin: EdgeInsets.only(
+            right: 8.0,
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Cash",
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Colors.white70,
+              ),
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  Widget cardBank(String value) {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white70,
+            borderRadius: BorderRadius.circular(
+              20.0,
+            ),
+          ),
+          padding: EdgeInsets.all(
+            6.0,
+          ),
+          child: Icon(
+            Icons.money,
+            size: 28.0,
+            color: Colors.green[700],
+          ),
+          margin: EdgeInsets.only(
+            right: 8.0,
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              " Bank",
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Colors.white70,
+              ),
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank) async {
+    final expenses = Expenses()
+      ..amount = amount
+      ..category = name
+      ..date = date
+      ..isExpense = isExpense
+      ..sessionKey = currentSessionKey
+      ..isBank = isBank;
+
+    final box = Boxes.getTransactions();
+    box.add(expenses);
+    // print(amount);
+    // print(name);
+    // print(date);
   }
 }
