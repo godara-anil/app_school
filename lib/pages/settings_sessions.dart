@@ -22,6 +22,7 @@ class _Settings_sessionState extends State<Settings_session> {
       appBar: AppBar(
         title: Text('Settings'),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         onPressed: () => showDialog(
       context: context,

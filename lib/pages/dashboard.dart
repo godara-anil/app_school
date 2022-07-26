@@ -17,7 +17,8 @@ class dashboard extends StatefulWidget {
 }
 
 class _dashboardState extends State<dashboard> {
-  int currentSessionKey = 0;
+ int  currentSessionKey = getActiveSession.getSession()[0].key;
+ // int currentSessionKey = 0;
   @override
   void dispose() {
     Hive.box('expenses').close();
@@ -53,7 +54,6 @@ class _dashboardState extends State<dashboard> {
   @override
   Widget build(BuildContext context) {
     var  currentSession = getActiveSession.getSession();
-    int currentSessionKey = 0;
     if(currentSession.length == 0){
       final session = Sessions()
       ..isActive = true
@@ -349,6 +349,7 @@ class _dashboardState extends State<dashboard> {
     );
   }
   Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank) async {
+    //print(currentSessionKey);
     final expenses = Expenses()
       ..amount = amount
       ..category = name
