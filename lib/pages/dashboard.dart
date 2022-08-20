@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:app_school/boxes.dart';
@@ -7,8 +8,12 @@ import 'package:app_school/model/Expenses.dart';
 import 'package:app_school/getActiveSession.dart';
 import 'package:app_school/widget/dataBackupRestore.dart';
 import 'package:app_school/pages/settings_sessions.dart';
-
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../widget/addExpensesDialog.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 
 class dashboard extends StatefulWidget {
@@ -17,8 +22,8 @@ class dashboard extends StatefulWidget {
 }
 
 class _dashboardState extends State<dashboard> {
- int  currentSessionKey = getActiveSession.getSession()[0].key;
- // int currentSessionKey = 0;
+ // int  currentSessionKey = getActiveSession.getSession()[0].key;
+  int currentSessionKey = 0;
   @override
   void dispose() {
     Hive.box('expenses').close();
@@ -71,7 +76,7 @@ class _dashboardState extends State<dashboard> {
           title: Text('Dashboard'),
           backgroundColor: Colors.green[700],
           actions: <Widget>[
-            IconButton(
+            /*IconButton(
               icon: Icon(
                 Icons.settings,
                 color: Colors.white,
@@ -81,7 +86,44 @@ class _dashboardState extends State<dashboard> {
                 Navigator.pushNamed(context, '/settings').then((value) =>
                     setState(() => {}));
               },
-            )
+            )*/
+            PopupMenuButton <int> (itemBuilder: (context) => [
+              PopupMenuItem(
+                  value: 1,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.settings,
+                        color: Colors.green,
+                      ),
+                      SizedBox(width: 10,),
+                      Text('Sessions'),
+                    ],
+                  )
+              ),
+              PopupMenuItem(
+                  value: 2,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.backup,
+                        color: Colors.green,
+                      ),
+                      SizedBox(width: 10,),
+                      Text('Data Backup'),
+                    ],
+                  )),
+            ],
+              onSelected: (value) {
+                 if(value == 1) {
+                   Navigator.pushNamed(context, '/settings').then((value) =>
+                       setState(() => {}));
+                 }
+                 else if (value ==2) {
+                   Navigator.pushNamed(context, '/dataBackUp');
+                 }
+              },
+            ),
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -124,6 +166,7 @@ class _dashboardState extends State<dashboard> {
             Navigator.pushNamed(context, '/expenses', arguments: {'isExpense' : false});
           },
         ),
+
       );
     } else {
       final netBalance = transactions.fold<double>(
@@ -253,7 +296,6 @@ class _dashboardState extends State<dashboard> {
               ),
             ],
           ),
-
        ],
       );
     }
@@ -360,8 +402,5 @@ class _dashboardState extends State<dashboard> {
 
     final box = Boxes.getTransactions();
     box.add(expenses);
-    // print(amount);
-    // print(name);
-    // print(date);
   }
 }

@@ -15,6 +15,15 @@ class Expenses extends HiveObject {
   late int? sessionKey;
   @HiveField(6)
   late bool? isBank = false;
+
+  Map<String, dynamic> toJson() => {
+    'amount' : this.amount,
+    'isExpense' : this.isExpense,
+    'date'  : this.date,
+    'category' : this.category,
+    'sessionKey' : this.sessionKey,
+    'isBank'  : this.isBank,
+  };
 }
 @HiveType(typeId:1)
 class Sessions extends HiveObject {
