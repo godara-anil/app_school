@@ -156,7 +156,7 @@ class _expensesState extends State<expenses> {
       );
     }
   }
-    Widget buildTransaction(
+  Widget buildTransaction(
       BuildContext context,
       Expenses transaction,
       ) {

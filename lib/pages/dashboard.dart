@@ -76,17 +76,6 @@ class _dashboardState extends State<dashboard> {
           title: Text('Dashboard'),
           backgroundColor: Colors.green[700],
           actions: <Widget>[
-            /*IconButton(
-              icon: Icon(
-                Icons.settings,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                // do something
-                Navigator.pushNamed(context, '/settings').then((value) =>
-                    setState(() => {}));
-              },
-            )*/
             PopupMenuButton <int> (itemBuilder: (context) => [
               PopupMenuItem(
                   value: 1,
@@ -147,7 +136,7 @@ class _dashboardState extends State<dashboard> {
             final transactions = box.values.where((Expenses) =>
             Expenses.sessionKey == currentSessionKey)
                 .toList().cast<Expenses>();
-            // transactions.sort((b, a )=> a.date.compareTo(b.date));
+            transactions.sort((b, a )=> a.date.compareTo(b.date));
             getCashBankBalance(transactions);
             return buildContent(transactions);
           },
@@ -158,14 +147,9 @@ class _dashboardState extends State<dashboard> {
   Widget buildContent(List<Expenses> transactions) {
     if (transactions.isEmpty) {
       return Center(
-        child: TextButton(
-          child: Text(
-          'No data yet click to Add!',
-          style: TextStyle(fontSize: 24)),
-          onPressed: (){
-            Navigator.pushNamed(context, '/expenses', arguments: {'isExpense' : false});
-          },
-        ),
+        child: Text(
+        'No data to display',
+        style: TextStyle(fontSize: 24)),
 
       );
     } else {
@@ -296,9 +280,73 @@ class _dashboardState extends State<dashboard> {
               ),
             ],
           ),
+          SizedBox(height: 24,),
+          Text(
+              "Latest Transactions",
+          style: TextStyle(fontSize:20, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.all(8),
+              itemCount: transactions.length > 5? 5 : transactions.length,
+              itemBuilder: (BuildContext context, int index) {
+                final transaction = transactions[index];
+                return buildTransaction(context, transaction);
+              },
+            ),
+          ),
        ],
       );
     }
+  }
+  Widget buildTransaction(
+      BuildContext context,
+      Expenses transaction,
+      ) {
+    final color = transaction.isExpense ? Colors.red : Colors.green;
+    final date = DateFormat.yMMMd().format(transaction.date);
+    final amount = transaction.amount.toStringAsFixed(0);
+    final bankCash = transaction.isBank! ? "Bank" : "Cash";
+    return Card(
+      color: Colors.white,
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        title: Text(
+          transaction.category,
+          maxLines: 2,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18,),
+        ),
+        subtitle: Text(
+            date,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              amount,
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            SizedBox(height: 8.0,),
+            Container(
+              decoration: BoxDecoration (
+                color: Colors.greenAccent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: EdgeInsets.all(5.0),
+              child: Text(
+                bankCash,
+                style: TextStyle(
+                  fontSize: 13.0,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
   Widget cardCash(String value) {
     return Row(
