@@ -17,6 +17,8 @@ class expenses extends StatefulWidget {
 }
 
 class _expensesState extends State<expenses> {
+  String searchQuery = '';
+  final searchText = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final amountController = TextEditingController();
@@ -51,14 +53,15 @@ class _expensesState extends State<expenses> {
   }
   @override
   void dispose() {
-    Hive.box('expenses').close();
     super.dispose();
   }
+
+  Widget cusAppBarText = Text('Transaction');
+  Icon cusIconSearch = Icon(Icons.search);
   @override
   Widget build(BuildContext context) {
    final incomOrExpense = ModalRoute.of(context)?.settings.arguments as Map?;
      isExpense = incomOrExpense?['isExpense'];
-   //isExpense = true;
    final appBarText = isExpense ? 'Expenses' : 'Incomes';
    final appBarColor = isExpense ? Colors.red : Colors.green;
   final cYear = DateTime.now().year;
@@ -70,13 +73,44 @@ class _expensesState extends State<expenses> {
    }
    String btnText1 = DateFormat('d MMM').format(startDate.add(const Duration(days: 1)));
    String btnText2 = DateFormat('d MMM').format(endDate.subtract(const Duration(days: 1)));
-   // final currentSession = '2022-23';
+
      return Scaffold(
       appBar: AppBar(
-        title: Text('$appBarText'),
+        title: cusAppBarText,
         actions: <Widget>[
-          IconButton(onPressed: (){},
-              icon: Icon(Icons.search)),
+          IconButton(onPressed: (){
+            setState(() {
+              if(this.cusIconSearch.icon == Icons.search) {
+                this.cusIconSearch = Icon(Icons.clear);
+                this.cusAppBarText = TextField(
+                  controller: searchText,
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search Here ...',
+                    hintStyle:  TextStyle(
+                      color: Colors.white
+                    )
+                  ),
+                );
+              }
+              else {
+                this.cusIconSearch = Icon(Icons.search);
+                this.cusAppBarText = Text(appBarText);
+                setState(() {
+                  searchQuery = '';
+                });
+              }
+            });
+          },
+              icon: cusIconSearch),
           TextButton(onPressed: _show,
               child: Text(
                   '$btnText1 - $btnText2',
@@ -105,6 +139,7 @@ class _expensesState extends State<expenses> {
               .where((Expenses) => Expenses.sessionKey == currentSessionKey)
               .where((Expenses) => Expenses.date.isAfter(startDate))
               .where((Expenses) => Expenses.date.isBefore(endDate))
+              .where((Expenses) => Expenses.category.toLowerCase().contains(searchQuery.toLowerCase()))
               .toList().cast<Expenses>();
           transactions.sort((b, a )=> a.date.compareTo(b.date));
           return buildContent(transactions);
@@ -290,5 +325,42 @@ class _expensesState extends State<expenses> {
    //
     //setState(() => transactions.remove(transaction));
   }
+}
+class searchFilter extends SearchDelegate<String> {
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(onPressed: (){}, icon: Icon(Icons.clear))
+    ];
+  }
 
+  @override
+  Widget? buildLeading(BuildContext context) {
+   return IconButton(
+       onPressed: (){
+         close(context, '');
+       },
+       icon: AnimatedIcon(
+         icon: AnimatedIcons.menu_arrow,
+         progress: transitionAnimation,
+       )
+   );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    // TODO: implement buildResults
+    // _expensesState().searchQuery = query;
+     return Center();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    // TODO: implement buildSuggestions
+    final suggestionList = query;
+    return Column(
+
+    );
+  }
+  
 }

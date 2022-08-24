@@ -6,9 +6,12 @@ import 'package:app_school/pages/dataBackUp.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:app_school/model/Expenses.dart';
-import 'package:app_school/pages/splashScreen.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+
   Hive.registerAdapter(ExpensesAdapter());
   Hive.registerAdapter(SessionsAdapter());
   await Hive.openBox<Expenses>('expenses');
@@ -19,9 +22,15 @@ void main() async {
       '/dashboard': (context) => dashboard(),
       '/expenses': (context) => expenses(),
       '/settings': (context) => Settings_session(),
-      '/splash': (context) => SplashScreen(),
       '/dataBackUp': (context) => dataBackUp(),
     },
+    theme: ThemeData(
+      primaryColor: Colors.green[700],
+
+    ),
   ));
+}
+Future intialization(BuildContext? context) async {
+  await Future.delayed(Duration(seconds: 3));
 }
 

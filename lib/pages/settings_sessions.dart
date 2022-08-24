@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -21,6 +20,7 @@ class _Settings_sessionState extends State<Settings_session> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
+        backgroundColor: Colors.green[700],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
@@ -31,7 +31,7 @@ class _Settings_sessionState extends State<Settings_session> {
       ),
 
     ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.green[700],
         child: const Icon(Icons.add),
       ),
       body: ValueListenableBuilder<Box<Sessions>>(
@@ -62,7 +62,6 @@ class _Settings_sessionState extends State<Settings_session> {
                itemCount: sessions.length,
                itemBuilder: (BuildContext context, int index) {
                  final session = sessions[index];
-
                  return buildTransaction(context, session);
                },
              ),
@@ -70,8 +69,6 @@ class _Settings_sessionState extends State<Settings_session> {
         ],
       );
     }
-
-
   }
   Widget buildTransaction(
       BuildContext context,
@@ -80,13 +77,13 @@ class _Settings_sessionState extends State<Settings_session> {
     return Card(
       color: Colors.white,
       child: ExpansionTile(
+        textColor: Colors.green[900],
         tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         title: Text(
           session.session,
           maxLines: 2,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        // subtitle: Text(date),
         trailing: buildIcon(session.isActive),
         children: [
           buildButtons(context, session),
@@ -96,7 +93,7 @@ class _Settings_sessionState extends State<Settings_session> {
   }
   Widget buildIcon (isActive) {
     if(isActive == true) {
-      return Icon(Icons.check, color: Colors.blue,);
+      return Icon(Icons.check, color: Colors.green[700],);
     }
     else {
       return Text('');
@@ -106,8 +103,9 @@ class _Settings_sessionState extends State<Settings_session> {
     children: [
       Expanded(
         child: TextButton.icon(
-          label: Text('Edit'),
-          icon: Icon(Icons.edit),
+          label: Text('Edit',
+          style: TextStyle(color: Colors.green[900]),),
+          icon: Icon(Icons.edit, color: Colors.green[900],),
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => AddSessionDialog(
@@ -118,11 +116,13 @@ class _Settings_sessionState extends State<Settings_session> {
             ),
           ),
         ),
+
       ),
       Expanded(
         child: TextButton.icon(
-          label: Text('Delete'),
-          icon: Icon(Icons.delete),
+          label: Text('Delete',
+              style: TextStyle(color: Colors.green[900])),
+          icon: Icon(Icons.delete, color: Colors.green[900]),
           onPressed: () => deleteTransaction(context, session),
         ),
       ),
@@ -137,8 +137,9 @@ class _Settings_sessionState extends State<Settings_session> {
     }
     else {
       return TextButton.icon(
-        label: Text('Active'),
-        icon: Icon(Icons.check),
+        label: Text('Active',
+            style: TextStyle(color: Colors.green[900])),
+        icon: Icon(Icons.check, color: Colors.green[900]),
         onPressed: () => makeActive(session),
       );
     }

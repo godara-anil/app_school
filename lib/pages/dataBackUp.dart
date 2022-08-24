@@ -21,6 +21,7 @@ class dataBackUpState extends State<dataBackUp> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Database Fuctions'),
+        backgroundColor: Colors.green[700],
       ),
       body: Center(
         child: Column(
@@ -30,9 +31,9 @@ class dataBackUpState extends State<dataBackUp> {
             ElevatedButton(
                 onPressed: () => _fetchData(context, true),
                 style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 10)
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  primary: Colors.green[900],
                 ),
-
                 child: Text(
                     'Back Up Local',
                   style: TextStyle(fontSize: 24),
@@ -50,7 +51,8 @@ class dataBackUpState extends State<dataBackUp> {
             SizedBox(height: 24,),
             ElevatedButton(onPressed: () => _fetchData(context, false),
                 style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 10)
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  primary: Colors.red[900]
                 ),
                 child: Text('Restore Data',
                   style: TextStyle(fontSize: 24),
