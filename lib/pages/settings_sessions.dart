@@ -103,9 +103,8 @@ class _Settings_sessionState extends State<Settings_session> {
     children: [
       Expanded(
         child: TextButton.icon(
-          label: Text('Edit',
-          style: TextStyle(color: Colors.green[900]),),
-          icon: Icon(Icons.edit, color: Colors.green[900],),
+          label: Text('Edit'),
+          icon: Icon(Icons.edit),
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => AddSessionDialog(
@@ -120,9 +119,8 @@ class _Settings_sessionState extends State<Settings_session> {
       ),
       Expanded(
         child: TextButton.icon(
-          label: Text('Delete',
-              style: TextStyle(color: Colors.green[900])),
-          icon: Icon(Icons.delete, color: Colors.green[900]),
+          label: Text('Delete'),
+          icon: Icon(Icons.delete,),
           onPressed: () => deleteTransaction(context, session),
         ),
       ),
@@ -137,9 +135,8 @@ class _Settings_sessionState extends State<Settings_session> {
     }
     else {
       return TextButton.icon(
-        label: Text('Active',
-            style: TextStyle(color: Colors.green[900])),
-        icon: Icon(Icons.check, color: Colors.green[900]),
+        label: Text('Active'),
+        icon: Icon(Icons.check,),
         onPressed: () => makeActive(session),
       );
     }
@@ -148,12 +145,8 @@ class _Settings_sessionState extends State<Settings_session> {
     final session = Sessions()
       ..isActive = isActive
       ..session = name;
-
     final box = Sess.getTransactions();
     box.add(session);
-    // print(isActive);
-     // print(name);
-    // print(date);
   }
   void editTransaction(
       Sessions session,
@@ -162,16 +155,12 @@ class _Settings_sessionState extends State<Settings_session> {
       ) {
     session.session = name;
     session.isActive = isActive;
-    // final box = Boxes.getTransactions();
-    // box.put(transaction.key, transaction);
-
     session.save();
   }
 
   void deleteTransaction(context, Sessions transaction) async{
-    // final box = Boxes.getTransactions();
-    // box.delete(transaction.key);
-    final expenseBox = await Boxes.getTransactions().values.where((Expenses) => Expenses.sessionKey == transaction.key)
+    final expenseBox = await Boxes.getTransactions().values
+        .where((Expenses) => Expenses.sessionKey == transaction.key)
         .toList().cast<Expenses>();
     if(transaction.isActive) {
       showAlertDialog(context, true);
@@ -182,14 +171,13 @@ class _Settings_sessionState extends State<Settings_session> {
     else {
       transaction.delete();
        }
-    //setState(() => transactions.remove(transaction));
   }
   showAlertDialog(BuildContext context, reason) {
 
     String textShow = reason ? "Can not delete active session." : "Can not delete session.";
     // Create button
 
-    Widget okButton = FlatButton(
+    Widget okButton = TextButton(
       child: Text("OK"),
       onPressed: () {
         Navigator.of(context).pop();
@@ -213,16 +201,14 @@ class _Settings_sessionState extends State<Settings_session> {
       },
     );
   }
-
   void makeActive(Sessions session){
-    final box = Sess.getTransactions().values.where((Sessions) => Sessions.isActive == true).toList().cast<Sessions>();
+    final box = Sess.getTransactions().values.where((Sessions) => Sessions.isActive == true)
+        .toList().cast<Sessions>();
     session.isActive = true;
-    print(box.length);
     if(box.length == 1) {
       makeInactive(Sessions, box[0]);
     }
     session.save();
-
   }
   void makeInactive(Sessions, session){
     session.isActive = false;

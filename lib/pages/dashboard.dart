@@ -331,7 +331,7 @@ class _dashboardState extends State<dashboard> {
             SizedBox(height: 8.0,),
             Container(
               decoration: BoxDecoration (
-                color: Colors.greenAccent,
+                color: Colors.green,
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: EdgeInsets.all(5.0),

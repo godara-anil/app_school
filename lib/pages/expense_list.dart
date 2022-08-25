@@ -36,11 +36,7 @@ class _expensesState extends State<expenses> {
       currentDate: DateTime.now(),
       saveText: 'Done',
     );
-
     if (result != null) {
-      // Rebuild the UI
-      // print('result');
-      print(result);
       setState(() {
         _selectedDateRange = result;
       });
@@ -55,7 +51,6 @@ class _expensesState extends State<expenses> {
   void dispose() {
     super.dispose();
   }
-
   Widget cusAppBarText = Text('Transaction');
   Icon cusIconSearch = Icon(Icons.search);
   @override
@@ -73,7 +68,7 @@ class _expensesState extends State<expenses> {
    }
    String btnText1 = DateFormat('d MMM').format(startDate.add(const Duration(days: 1)));
    String btnText2 = DateFormat('d MMM').format(endDate.subtract(const Duration(days: 1)));
-
+   if(this.cusAppBarText.runtimeType == Text) { cusAppBarText = Text(appBarText); }
      return Scaffold(
       appBar: AppBar(
         title: cusAppBarText,
@@ -99,6 +94,7 @@ class _expensesState extends State<expenses> {
                       color: Colors.white
                     )
                   ),
+                  autofocus: true,
                 );
               }
               else {
@@ -127,9 +123,8 @@ class _expensesState extends State<expenses> {
         incomeOrExpense : isExpense,
         onClickDone: addTransaction,
       ),
-
     ),
-        backgroundColor: Colors.green,
+        backgroundColor: appBarColor,
         child: const Icon(Icons.add),
       ),
       body: ValueListenableBuilder<Box<Expenses>>(
