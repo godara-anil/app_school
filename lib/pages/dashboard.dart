@@ -6,23 +6,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:app_school/model/Expenses.dart';
 import 'package:app_school/getActiveSession.dart';
-import 'package:app_school/widget/dataBackupRestore.dart';
-import 'package:app_school/pages/settings_sessions.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../widget/addExpensesDialog.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-
-
 
 class dashboard extends StatefulWidget {
   @override
   State<dashboard> createState() => _dashboardState();
 }
-
 class _dashboardState extends State<dashboard> {
- // int  currentSessionKey = getActiveSession.getSession()[0].key;
   int currentSessionKey = 0;
   @override
   void dispose() {
@@ -32,7 +22,6 @@ class _dashboardState extends State<dashboard> {
   }
   double cashBalance = 0;
   double bankBalance = 0;
-
   getCashBankBalance(List<Expenses> transactions) {
     cashBalance = 0;
     bankBalance = 0;
@@ -102,6 +91,18 @@ class _dashboardState extends State<dashboard> {
                       Text('Data Backup'),
                     ],
                   )),
+              PopupMenuItem(
+                  value: 3,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.data_thresholding,
+                        color: Colors.green,
+                      ),
+                      SizedBox(width: 10,),
+                      Text('Reports'),
+                    ],
+                  )),
             ],
               onSelected: (value) {
                  if(value == 1) {
@@ -111,6 +112,10 @@ class _dashboardState extends State<dashboard> {
                  else if (value ==2) {
                    Navigator.pushNamed(context, '/dataBackUp');
                  }
+                 else if (value ==3) {
+                   Navigator.pushNamed(context, '/reports');
+                 }
+
               },
             ),
           ],

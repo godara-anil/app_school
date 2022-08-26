@@ -1,3 +1,4 @@
+import 'package:app_school/pages/reports.dart';
 import 'package:flutter/material.dart';
 import 'package:app_school/pages/dashboard.dart';
 import 'package:app_school/pages/expense_list.dart';
@@ -23,10 +24,10 @@ void main() async {
       '/expenses': (context) => expenses(),
       '/settings': (context) => Settings_session(),
       '/dataBackUp': (context) => dataBackUp(),
+      '/reports': (context) => reports(),
     },
     theme: ThemeData(
       primaryColor: Colors.green[700],
-
     ),
   ));
 }

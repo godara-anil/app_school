@@ -45,7 +45,6 @@ class _expensesState extends State<expenses> {
   @override
   void initState (){
     super.initState();
-   // controller = TextEditingController();
   }
   @override
   void dispose() {
@@ -141,7 +140,6 @@ class _expensesState extends State<expenses> {
         },
       ),
     );
-
   }
   Widget buildContent(List<Expenses> transactions) {
     if (transactions.isEmpty) {
@@ -235,7 +233,6 @@ class _expensesState extends State<expenses> {
       ),
     );
   }
-
   Widget buildButtons(BuildContext context, Expenses transaction) => Row(
     children: [
       Expanded(
@@ -294,8 +291,6 @@ class _expensesState extends State<expenses> {
   }
 
   void deleteTransaction(Expenses transaction) async{
-    // final box = Boxes.getTransactions();
-    // box.delete(transaction.key);
     final response = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -320,42 +315,4 @@ class _expensesState extends State<expenses> {
    //
     //setState(() => transactions.remove(transaction));
   }
-}
-class searchFilter extends SearchDelegate<String> {
-  @override
-  List<Widget>? buildActions(BuildContext context) {
-    return [
-      IconButton(onPressed: (){}, icon: Icon(Icons.clear))
-    ];
-  }
-
-  @override
-  Widget? buildLeading(BuildContext context) {
-   return IconButton(
-       onPressed: (){
-         close(context, '');
-       },
-       icon: AnimatedIcon(
-         icon: AnimatedIcons.menu_arrow,
-         progress: transitionAnimation,
-       )
-   );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    // TODO: implement buildResults
-    // _expensesState().searchQuery = query;
-     return Center();
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    // TODO: implement buildSuggestions
-    final suggestionList = query;
-    return Column(
-
-    );
-  }
-  
 }
