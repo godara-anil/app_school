@@ -92,7 +92,7 @@ class dataBackUpState extends State<dataBackUp> {
            });
       // await Future.delayed(const Duration(seconds: 3));
        if(isCreate) { await _createBackupFile(); }
-       else if(!isCreate) {await Future.delayed(const Duration(seconds: 3));}
+       else if(!isCreate) {await _restoreDb();}
        // Close the dialog programmatically
        Navigator.of(context).pop();
 
@@ -101,11 +101,13 @@ class dataBackUpState extends State<dataBackUp> {
     if(await Permission.storage.request().isGranted) {
       var dir = await getExternalStorageDirectory();
       if(!Directory("${dir?.path}").existsSync()){
-        Directory("${dir?.path}").createSync(recursive: true);
-      }
+        Directory("${dir?.path}").createSync(recursive: true);      }
       final boxPath = Boxes.getTransactions().path;
-      final newPath = '${dir?.path}/hiveDB.hive';
+      final boxPath1 = Sess.getTransactions().path;
+      final newPath = '${dir?.path}/expenses.hive';
+      final newPath1 = '${dir?.path}/sessons.hive';
       await File(newPath).copy(boxPath!);
+      await File(newPath1).copy(boxPath1!);
       return true;
     }
     else {
@@ -116,7 +118,8 @@ class dataBackUpState extends State<dataBackUp> {
   }
   Future<void> _shareFile() async {
     try {
-      await Share.shareFiles([Boxes.getTransactions().path.toString()], subject: "Database");
+      await Share.shareFiles([Boxes.getTransactions().path.toString(),
+        Sess.getTransactions().path.toString() ], subject: "Database");
     } catch (e) {
       print(e);
     }
@@ -128,8 +131,11 @@ class dataBackUpState extends State<dataBackUp> {
            Directory("${dir?.path}").createSync(recursive: true);
          }
          final boxPath = Boxes.getTransactions().path;
-         final newPath = '${dir?.path}/hiveDB.hive';
+         final boxPath1 = Sess.getTransactions().path;
+         final newPath = '${dir?.path}/expenses.hive';
+         final newPath1 = '${dir?.path}/sessons.hive';
          await File(boxPath!).copy(newPath);
+         await File(boxPath1!).copy(newPath1);
          return true;
        }
        else {
