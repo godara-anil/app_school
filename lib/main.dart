@@ -1,3 +1,4 @@
+import 'package:app_school/pages/authenticate.dart';
 import 'package:app_school/pages/reports.dart';
 import 'package:flutter/material.dart';
 import 'package:app_school/pages/dashboard.dart';
@@ -12,13 +13,12 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-
   Hive.registerAdapter(ExpensesAdapter());
   Hive.registerAdapter(SessionsAdapter());
   await Hive.openBox<Expenses>('expenses');
   await Hive.openBox<Sessions>('sessions');
   runApp(MaterialApp(
-    home: dashboard(),
+    home: FingerprintPage(),
     routes: {
       '/dashboard': (context) => dashboard(),
       '/expenses': (context) => expenses(),
@@ -31,7 +31,6 @@ void main() async {
     ),
   ));
 }
-Future intialization(BuildContext? context) async {
-  await Future.delayed(Duration(seconds: 3));
-}
+
+
 

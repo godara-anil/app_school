@@ -41,6 +41,7 @@ dependencies:
   permission_handler: ^10.0.0
   syncfusion_flutter_datepicker: ^20.2.39
   share_plus: ^4.0.10+1
+  local_auth: ^2.1.2
 
 
 dev_dependencies:
