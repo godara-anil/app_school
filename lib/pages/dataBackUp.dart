@@ -91,28 +91,34 @@ class dataBackUpState extends State<dataBackUp> {
              );
            });
       // await Future.delayed(const Duration(seconds: 3));
-       if(isCreate) { await _createBackupFile(); }
-       else if(!isCreate) {await _restoreDb();}
+       if(isCreate) {
+         await _createBackupFile();
+         Navigator.of(context).pop();
+       }
+       else if(!isCreate) {
+         await _restoreDb();
+         Navigator.of(context).pop();
+       }
        // Close the dialog programmatically
-       Navigator.of(context).pop();
-
   }
   Future _restoreDb() async {
     if(await Permission.storage.request().isGranted) {
       var dir = await getExternalStorageDirectory();
-      if(!Directory("${dir?.path}").existsSync()){
-        Directory("${dir?.path}").createSync(recursive: true);      }
       final boxPath = Boxes.getTransactions().path;
       final boxPath1 = Sess.getTransactions().path;
       final newPath = '${dir?.path}/expenses.hive';
       final newPath1 = '${dir?.path}/sessons.hive';
-      await File(newPath).copy(boxPath!);
-      await File(newPath1).copy(boxPath1!);
-      return true;
+      try {
+        await File(newPath).copy(boxPath!);
+        await File(newPath1).copy(boxPath1!);
+        return true;
+      } catch (e) {
+        return e;
+      }
     }
     else {
       // Handle the error
-      return false;
+      return true;
     }
 
   }
@@ -126,14 +132,18 @@ class dataBackUpState extends State<dataBackUp> {
   }
   Future  _createBackupFile() async {
        if(await Permission.storage.request().isGranted) {
-         Directory dir = Directory('/storage/emulated/0/Download');
+       //  Directory dir = Directory('/storage/emulated/0/Download');
+         var dir = await getExternalStorageDirectory();
          final boxPath = Boxes.getTransactions().path;
          final boxPath1 = Sess.getTransactions().path;
-         final newPath = '${dir.path}/expenses.hive';
-         final newPath1 = '${dir.path}/sessons.hive';
-         await File(boxPath!).copy(newPath);
-         await File(boxPath1!).copy(newPath1);
-         return true;
+         final newPath = '${dir?.path}/expenses.hive';
+         final newPath1 = '${dir?.path}/sessons.hive';
+         try {
+           await File(boxPath!).copy(newPath);
+           await File(boxPath1!).copy(newPath1);
+           return true;
+         }
+         catch (e) { return e;}
        }
        else {
          // Handle the error
