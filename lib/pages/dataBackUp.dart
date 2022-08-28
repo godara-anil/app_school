@@ -126,14 +126,11 @@ class dataBackUpState extends State<dataBackUp> {
   }
   Future  _createBackupFile() async {
        if(await Permission.storage.request().isGranted) {
-         var dir = await getExternalStorageDirectory();
-         if(!Directory("${dir?.path}").existsSync()){
-           Directory("${dir?.path}").createSync(recursive: true);
-         }
+         Directory dir = Directory('/storage/emulated/0/Download');
          final boxPath = Boxes.getTransactions().path;
          final boxPath1 = Sess.getTransactions().path;
-         final newPath = '${dir?.path}/expenses.hive';
-         final newPath1 = '${dir?.path}/sessons.hive';
+         final newPath = '${dir.path}/expenses.hive';
+         final newPath1 = '${dir.path}/sessons.hive';
          await File(boxPath!).copy(newPath);
          await File(boxPath1!).copy(newPath1);
          return true;
