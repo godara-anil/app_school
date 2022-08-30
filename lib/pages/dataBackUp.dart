@@ -64,41 +64,65 @@ class dataBackUpState extends State<dataBackUp> {
     );
   }
   void _fetchData(BuildContext context, isCreate) async {
-       // show the loading dialog
-       showDialog(
-         // The user CANNOT close this dialog  by pressing outside it
-           barrierDismissible: false,
-           context: context,
-           builder: (_) {
-             return Dialog(
-               // The background color
-               backgroundColor: Colors.white,
-               child: Padding(
-                 padding: const EdgeInsets.symmetric(vertical: 20),
-                 child: Column(
-                   mainAxisSize: MainAxisSize.min,
-                   children: const [
-                     // The loading indicator
-                     CircularProgressIndicator(),
-                     SizedBox(
-                       height: 15,
-                     ),
-                     // Some text
-                     Text('Loading...')
-                   ],
-                 ),
-               ),
-             );
-           });
-      // await Future.delayed(const Duration(seconds: 3));
-       if(isCreate) {
-         await _createBackupFile();
-         Navigator.of(context).pop();
-       }
-       else if(!isCreate) {
-         await _restoreDb();
-         Navigator.of(context).pop();
-       }
+    String textValue = isCreate ? 'backup' : 'restore';
+    final response = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) =>
+          AlertDialog(
+            title: const Text('Alert!!!',
+            style: TextStyle(color: Colors.blue),),
+            content: Text('Are you sure you want to $textValue the data!'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
+    // show the loading dialog
+    if (response != null && response == true) {
+          showDialog(
+      // The user CANNOT close this dialog  by pressing outside it
+        barrierDismissible: false,
+        context: context,
+        builder: (_) {
+          return Dialog(
+            // The background color
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  // The loading indicator
+                  CircularProgressIndicator(),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  // Some text
+                  Text('Loading...')
+                ],
+              ),
+            ),
+          );
+        });
+    // await Future.delayed(const Duration(seconds: 3));
+    if (isCreate) {
+      var response = await _createBackupFile();
+      Navigator.of(context).pop();
+      if(response != true) _showError(context);
+    }
+    else if (!isCreate) {
+      var response = await _restoreDb();
+      Navigator.of(context).pop();
+      if(response != true) _showError(context);
+    }
+  }
        // Close the dialog programmatically
   }
   Future _restoreDb() async {
@@ -149,5 +173,22 @@ class dataBackUpState extends State<dataBackUp> {
          // Handle the error
          return false;
        }
+     }
+  Future _showError(BuildContext context) {
+        return showDialog(
+            context: context,
+            builder: (BuildContext context){
+              return AlertDialog(
+                title: const Text('Error!!!',
+                  style: TextStyle(color: Colors.red),),
+                content: Text('Unable to process the request!'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            });
      }
 }

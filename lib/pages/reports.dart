@@ -109,6 +109,7 @@ class _reportsState extends State<reports> {
         }
       }
     });
+    groupedData.sort((b, a )=> b['category'].compareTo(a['category']));
     return groupedData;
   }
 }

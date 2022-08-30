@@ -77,7 +77,6 @@ class _Settings_sessionState extends State<Settings_session> {
     return Card(
       color: Colors.white,
       child: ExpansionTile(
-        textColor: Colors.green[900],
         tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         title: Text(
           session.session,

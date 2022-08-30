@@ -26,9 +26,9 @@ void main() async {
       '/dataBackUp': (context) => dataBackUp(),
       '/reports': (context) => reports(),
     },
-    theme: ThemeData(
+    /*theme: ThemeData(
       primaryColor: Colors.green[700],
-    ),
+    ),*/
   ));
 }
 
