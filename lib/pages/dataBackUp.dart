@@ -131,7 +131,7 @@ class dataBackUpState extends State<dataBackUp> {
       final boxPath = Boxes.getTransactions().path;
       final boxPath1 = Sess.getTransactions().path;
       final newPath = '${dir?.path}/expenses.hive';
-      final newPath1 = '${dir?.path}/sessons.hive';
+      final newPath1 = '${dir?.path}/sessions.hive';
       try {
         await File(newPath).copy(boxPath!);
         await File(newPath1).copy(boxPath1!);
@@ -161,7 +161,7 @@ class dataBackUpState extends State<dataBackUp> {
          final boxPath = Boxes.getTransactions().path;
          final boxPath1 = Sess.getTransactions().path;
          final newPath = '${dir?.path}/expenses.hive';
-         final newPath1 = '${dir?.path}/sessons.hive';
+         final newPath1 = '${dir?.path}/sessions.hive';
          try {
            await File(boxPath!).copy(newPath);
            await File(boxPath1!).copy(newPath1);
