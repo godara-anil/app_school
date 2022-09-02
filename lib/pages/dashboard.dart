@@ -443,7 +443,7 @@ class _dashboardState extends State<dashboard> {
       ],
     );
   }
-  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank) async {
+  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank, String remarks) async {
     //print(currentSessionKey);
     final expenses = Expenses()
       ..amount = amount
@@ -451,7 +451,8 @@ class _dashboardState extends State<dashboard> {
       ..date = date
       ..isExpense = isExpense
       ..sessionKey = currentSessionKey
-      ..isBank = isBank;
+      ..isBank = isBank
+      ..remarks = remarks;
 
     final box = Boxes.getTransactions();
     box.add(expenses);

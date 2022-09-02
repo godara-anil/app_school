@@ -22,13 +22,14 @@ class ExpensesAdapter extends TypeAdapter<Expenses> {
       ..date = fields[2] as DateTime
       ..category = fields[3] as String
       ..sessionKey = fields[5] as int?
-      ..isBank = fields[6] as bool?;
+      ..isBank = fields[6] as bool?
+      ..remarks = fields[7] as String?;
   }
 
   @override
   void write(BinaryWriter writer, Expenses obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.amount)
       ..writeByte(1)
@@ -40,7 +41,9 @@ class ExpensesAdapter extends TypeAdapter<Expenses> {
       ..writeByte(5)
       ..write(obj.sessionKey)
       ..writeByte(6)
-      ..write(obj.isBank);
+      ..write(obj.isBank)
+      ..writeByte(7)
+      ..write(obj.remarks);
   }
 
   @override

@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 class AddExpenseDialog extends StatefulWidget {
   final Expenses? expenses;
   final incomeOrExpense;
-  final Function(double amount, String category, bool isExpense, DateTime date, bool isBank) onClickDone;
+  final Function(double amount, String category, bool isExpense, DateTime date, bool isBank, String remarks) onClickDone;
   const AddExpenseDialog({
     Key? key,
     this.expenses,
@@ -20,6 +20,7 @@ class AddExpenseDialog extends StatefulWidget {
 class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
+  final remarksController = TextEditingController();
   final amountController = TextEditingController();
   DateTime date = DateTime.now();
   bool isExpense = true;
@@ -30,8 +31,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     super.initState();
     if (widget.expenses != null) {
       final expenses = widget.expenses!;
-
       nameController.text = expenses.category;
+      if(expenses.remarks != null)  remarksController.text = expenses.remarks!;
       amountController.text = expenses.amount.toString();
       isExpense = expenses.isExpense;
       date = expenses.date;
@@ -45,6 +46,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   void dispose() {
     nameController.dispose();
     amountController.dispose();
+    remarksController.dispose();
      super.dispose();
   }
   @override
@@ -66,13 +68,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               SizedBox(height: 8),
               buildAmount(),
               SizedBox(height: 8),
+              buildRemarks(),
+              SizedBox(height: 8),
               buildDate(formatedDate),
               SizedBox(height: 8),
               buildDivider(),
               buildCashBank(),
               SizedBox(height: 8),
               buildDivider(),
-              //buildRadioButtons(),
               buildChoiceChips(),
             ],
           ),
@@ -92,6 +95,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     ),
     validator: (name) =>
     name != null && name.isEmpty ? 'Enter a name' : null,
+  );
+  Widget buildRemarks() => TextFormField(
+    controller: remarksController,
+    decoration: InputDecoration(
+      border: OutlineInputBorder(),
+      hintText: 'Remarks',
+    ),
   );
   Widget buildDate(formatedDate) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -120,23 +130,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
         ? 'Enter a valid number'
         : null,
     controller: amountController,
-  );
-
-  Widget buildRadioButtons() => Column(
-    children: [
-      RadioListTile<bool>(
-        title: Text('Expense'),
-        value: true,
-        groupValue: isExpense,
-        onChanged: (value) => setState(() => isExpense = value!),
-      ),
-      RadioListTile<bool>(
-        title: Text('Income'),
-        value: false,
-        groupValue: isExpense,
-        onChanged: (value) => setState(() => isExpense = value!),
-      ),
-    ],
   );
   Widget buildChoiceChips() => Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -196,21 +189,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     child: Text('Cancel'),
     onPressed: () => Navigator.of(context).pop(),
   );
-
   Widget buildAddButton(BuildContext context, {required bool isEditing}) {
     final text = isEditing ? 'Save' : 'Add';
-
     return TextButton(
       child: Text(text),
       onPressed: () async {
         final isValid = formKey.currentState!.validate();
-
         if (isValid) {
           final name = nameController.text;
+          final remarks = remarksController.text;
           final amount = double.tryParse(amountController.text) ?? 0;
-
-          widget.onClickDone(amount, name, isExpense, date, isBank);
-
+          widget.onClickDone(amount, name, isExpense, date, isBank, remarks);
           Navigator.of(context).pop();
         }
       },

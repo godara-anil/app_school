@@ -233,40 +233,51 @@ class _expensesState extends State<expenses> {
       ),
     );
   }
-  Widget buildButtons(BuildContext context, Expenses transaction) => Row(
+  Widget buildButtons(BuildContext context, Expenses transaction) => Column(
     children: [
-      Expanded(
-        child: TextButton.icon(
-          label: Text('Edit'),
-          icon: Icon(Icons.edit),
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AddExpenseDialog(
-                expenses: transaction,
-                onClickDone: (amount, name, isExpense, date, isBank) =>
-                    editTransaction(transaction, name, amount, isExpense, date, isBank),
+      Row(
+        children: [
+          getRemarks(transaction.remarks)
+        ],
+
+      ),
+      Row(
+        children: [
+          Expanded(
+            child: TextButton.icon(
+              label: Text('Edit'),
+              icon: Icon(Icons.edit),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddExpenseDialog(
+                    expenses: transaction,
+                    onClickDone: (amount, name, isExpense, date, isBank, remarks) =>
+                        editTransaction(transaction, name, amount, isExpense, date, isBank, remarks),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+          Expanded(
+            child: TextButton.icon(
+              label: Text('Delete'),
+              icon: Icon(Icons.delete),
+              onPressed: () => deleteTransaction(transaction),
+            ),
+          )
+        ],
       ),
-      Expanded(
-        child: TextButton.icon(
-          label: Text('Delete'),
-          icon: Icon(Icons.delete),
-          onPressed: () => deleteTransaction(transaction),
-        ),
-      )
     ],
   );
-  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank) async {
+  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank, String remarks) async {
     final expenses = Expenses()
       ..amount = amount
       ..category = name
       ..date = date
       ..isExpense = isExpense
       ..sessionKey = currentSessionKey
-      ..isBank = isBank;
+      ..isBank = isBank
+      ..remarks = remarks;
 
     final box = Boxes.getTransactions();
     box.add(expenses);
@@ -280,9 +291,11 @@ class _expensesState extends State<expenses> {
       double amount,
       bool isExpense,
       DateTime date,
-      bool isBank
+      bool isBank,
+      String remarks
       ) {
     transaction.category = name;
+    transaction.remarks = remarks;
     transaction.amount = amount;
     transaction.isExpense = isExpense;
     transaction.isBank = isBank;
@@ -314,5 +327,21 @@ class _expensesState extends State<expenses> {
     }
    //
     //setState(() => transactions.remove(transaction));
+  }
+  Widget getRemarks(remark) {
+    if(remark != null) {
+       return Expanded(
+          child:  Padding(
+            padding: const EdgeInsets.fromLTRB(25.0,0,0,0),
+            child: Text(remark,
+            style: const TextStyle(
+              fontSize: 16,
+            ),),
+          )
+      );
+    }
+    else {
+      return Column();
+    }
   }
 }
