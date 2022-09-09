@@ -285,13 +285,7 @@ class _expensesState extends State<expenses> {
     // print(name);
     // print(date);
 }
-  void editTransaction(
-      Expenses transaction,
-      String name,
-      double amount,
-      bool isExpense,
-      DateTime date,
-      bool isBank,
+  void editTransaction(Expenses transaction, String name, double amount, bool isExpense, DateTime date, bool isBank,
       String remarks
       ) {
     transaction.category = name;

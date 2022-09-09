@@ -42,6 +42,11 @@ dependencies:
   syncfusion_flutter_datepicker: ^20.2.39
   share_plus: ^4.0.10+1
   local_auth: ^2.1.2
+  google_sign_in: ^5.4.1
+  googleapis: ^7.0.0
+  workmanager: ^0.5.0
+
+
 
 
 dev_dependencies:
