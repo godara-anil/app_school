@@ -9,6 +9,7 @@ import '../boxes.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:cross_file/cross_file.dart';
 
 
 class dataBackUp extends StatefulWidget {
@@ -19,7 +20,7 @@ class dataBackUp extends StatefulWidget {
 }
 
 class dataBackUpState extends State<dataBackUp> {
-  final googleSignIn = GoogleSignIn.standard(scopes: [
+  final googleSignIn = GoogleSignIn(scopes: [
     drive.DriveApi.driveAppdataScope,
     drive.DriveApi.driveFileScope,
   ]);
@@ -39,7 +40,7 @@ class dataBackUpState extends State<dataBackUp> {
                 onPressed: () => _fetchData(context, true),
                 style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  primary: Colors.green[900],
+                  backgroundColor: Colors.green[900],
                 ),
                 child: Text(
                     'Back Up Local',
@@ -59,7 +60,7 @@ class dataBackUpState extends State<dataBackUp> {
             ElevatedButton(onPressed: () => _fetchData(context, false),
                 style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  primary: Colors.red[900]
+                  backgroundColor: Colors.red[900]
                 ),
                 child: Text('Restore Data',
                   style: TextStyle(fontSize: 24),
@@ -69,7 +70,7 @@ class dataBackUpState extends State<dataBackUp> {
             ElevatedButton(onPressed: () => _uploadToNormal(),
                 style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  primary: Colors.blueAccent[900]
+                  backgroundColor: Colors.blueAccent[900]
                 ),
                 child: Text('Google Drive',
                   style: TextStyle(fontSize: 24),
@@ -165,8 +166,10 @@ class dataBackUpState extends State<dataBackUp> {
   }
   Future<void> _shareFile() async {
     try {
-      await Share.shareFiles([Boxes.getTransactions().path.toString(),
-        Sess.getTransactions().path.toString() ], subject: "Database");
+    await Share.shareXFiles([
+      XFile(Sess.getTransactions().path.toString()),
+      XFile(Sess.getTransactions().path.toString()),
+    ], subject: "Database");
     } catch (e) {
       print(e);
     }

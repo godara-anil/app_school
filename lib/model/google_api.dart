@@ -22,7 +22,7 @@ class GoogleAuthClient extends http.BaseClient {
 }
 class UploadDatabase {
 
-  final googleSignIn = GoogleSignIn.standard(scopes: [
+  final googleSignIn = GoogleSignIn(scopes: [
     drive.DriveApi.driveAppdataScope,
     drive.DriveApi.driveFileScope,
   ]);
