@@ -7,6 +7,7 @@ import 'package:app_school/getActiveSession.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:app_school/services/account_service.dart';
 
 
 class expenses extends StatefulWidget {
@@ -191,7 +192,9 @@ class _expensesState extends State<expenses> {
     final color = transaction.isExpense ? Colors.red : Colors.green;
     final date = DateFormat.yMMMd().format(transaction.date);
     final amount = transaction.amount.toStringAsFixed(0);
-    final bankCash = transaction.isBank! ? "Bank" : "Cash";
+//    final bankCash = transaction.isBank! ? "Bank" : "Cash";
+    final accountName = AccountService.getAccountName(
+        transaction.accountId);
     return Card(
       color: Colors.white,
       child: ExpansionTile(
@@ -211,14 +214,14 @@ class _expensesState extends State<expenses> {
                   color: color, fontWeight: FontWeight.bold, fontSize: 16),
             ),
             SizedBox(height: 8.0,),
-            Container(
+           Container(
               decoration: BoxDecoration (
                 color: Colors.lightGreen,
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: EdgeInsets.all(5.0),
               child: Text(
-                bankCash,
+                accountName,
                 style: TextStyle(
                     fontSize: 13.0,
                   color: Colors.white,
@@ -251,8 +254,8 @@ class _expensesState extends State<expenses> {
                 MaterialPageRoute(
                   builder: (context) => AddExpenseDialog(
                     expenses: transaction,
-                    onClickDone: (amount, name, isExpense, date, isBank, remarks) =>
-                        editTransaction(transaction, name, amount, isExpense, date, isBank, remarks),
+                    onClickDone: (amount, name, isExpense, date, accountId, remarks) =>
+                        editTransaction(transaction, name, amount, isExpense, date, accountId, remarks),
                   ),
                 ),
               ),
@@ -269,14 +272,15 @@ class _expensesState extends State<expenses> {
       ),
     ],
   );
-  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank, String remarks) async {
+  Future addTransaction(double amount, String name, bool isExpense, DateTime date, String accountId, String remarks) async {
+    print(accountId);
     final expenses = Expenses()
       ..amount = amount
       ..category = name
       ..date = date
       ..isExpense = isExpense
       ..sessionKey = currentSessionKey
-      ..isBank = isBank
+      ..accountId = accountId
       ..remarks = remarks;
 
     final box = Boxes.getTransactions();
@@ -285,14 +289,14 @@ class _expensesState extends State<expenses> {
     // print(name);
     // print(date);
 }
-  void editTransaction(Expenses transaction, String name, double amount, bool isExpense, DateTime date, bool isBank,
+  void editTransaction(Expenses transaction, String name, double amount, bool isExpense, DateTime date, String accountId,
       String remarks
       ) {
     transaction.category = name;
     transaction.remarks = remarks;
     transaction.amount = amount;
     transaction.isExpense = isExpense;
-    transaction.isBank = isBank;
+   transaction.accountId = accountId;
     transaction.date = date;
     transaction.save();
   }

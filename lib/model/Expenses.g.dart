@@ -21,15 +21,16 @@ class ExpensesAdapter extends TypeAdapter<Expenses> {
       ..isExpense = fields[1] as bool
       ..date = fields[2] as DateTime
       ..category = fields[3] as String
-      ..sessionKey = fields[5] as int?
-      ..isBank = fields[6] as bool?
-      ..remarks = fields[7] as String?;
+      ..sessionKey = fields[4] as int?
+      ..accountId = fields[5] as String
+      ..remarks = fields[6] as String?
+      ..createdAt = fields[7] as DateTime;
   }
 
   @override
   void write(BinaryWriter writer, Expenses obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.amount)
       ..writeByte(1)
@@ -38,12 +39,14 @@ class ExpensesAdapter extends TypeAdapter<Expenses> {
       ..write(obj.date)
       ..writeByte(3)
       ..write(obj.category)
-      ..writeByte(5)
+      ..writeByte(4)
       ..write(obj.sessionKey)
+      ..writeByte(5)
+      ..write(obj.accountId)
       ..writeByte(6)
-      ..write(obj.isBank)
+      ..write(obj.remarks)
       ..writeByte(7)
-      ..write(obj.remarks);
+      ..write(obj.createdAt);
   }
 
   @override
@@ -89,6 +92,51 @@ class SessionsAdapter extends TypeAdapter<Sessions> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is SessionsAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class AccountAdapter extends TypeAdapter<Account> {
+  @override
+  final int typeId = 2;
+
+  @override
+  Account read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return Account(
+      name: fields[0] as String,
+      openingBalance: fields[1] as double,
+      type: fields[2] as String,
+      isActive: fields[3] as bool,
+    )..createdAt = fields[4] as DateTime;
+  }
+
+  @override
+  void write(BinaryWriter writer, Account obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.openingBalance)
+      ..writeByte(2)
+      ..write(obj.type)
+      ..writeByte(3)
+      ..write(obj.isActive)
+      ..writeByte(4)
+      ..write(obj.createdAt);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AccountAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

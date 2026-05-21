@@ -8,3 +8,7 @@ class Sess {
   static Box<Sessions> getTransactions() =>
       Hive.box<Sessions>('sessions');
 }
+class AccountsBox {
+  static Box<Account> getAccounts() =>
+      Hive.box<Account>('accounts');
+}

@@ -5,6 +5,7 @@ import 'package:app_school/boxes.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:app_school/model/Expenses.dart';
+import 'package:app_school/services/account_service.dart';
 import 'package:app_school/getActiveSession.dart';
 import '../widget/addExpensesDialog.dart';
 
@@ -23,25 +24,37 @@ class _dashboardState extends State<dashboard> {
   double cashBalance = 0;
   double bankBalance = 0;
   getCashBankBalance(List<Expenses> transactions) {
+
     cashBalance = 0;
+
     bankBalance = 0;
+
     for (Expenses data in transactions) {
+
+      final account =
+      AccountsBox.getAccounts()
+          .get(int.tryParse(data.accountId));
+
+      if (account == null) continue;
+
+      final isCash =
+          account.type.toLowerCase() == "cash";
+
       if (data.isExpense) {
-        if (data.isBank!) {
+
+        if (isCash) {
+          cashBalance -= data.amount;
+        } else {
           bankBalance -= data.amount;
         }
-        else {
-          cashBalance -= data.amount;
-        }
-      }
-      else {
-        if (data.isBank!) {
+
+      } else {
+
+        if (isCash) {
+          cashBalance += data.amount;
+        } else {
           bankBalance += data.amount;
         }
-        else {
-          cashBalance += data.amount;
-        }
-
       }
     }
   }
@@ -311,7 +324,10 @@ class _dashboardState extends State<dashboard> {
     final color = transaction.isExpense ? Colors.red : Colors.green;
     final date = DateFormat.yMMMd().format(transaction.date);
     final amount = transaction.amount.toStringAsFixed(0);
-    final bankCash = transaction.isBank! ? "Bank" : "Cash";
+    final accountName = AccountService.getAccountName(
+        transaction.accountId);
+    //print(transaction.accountId);
+   // final bankCash = accountName == null;
     return Card(
       color: Colors.white,
       child: ExpansionTile(
@@ -341,7 +357,7 @@ class _dashboardState extends State<dashboard> {
               ),
               padding: EdgeInsets.all(5.0),
               child: Text(
-                bankCash,
+                accountName,
                 style: TextStyle(
                   fontSize: 13.0,
                   color: Colors.white,
@@ -443,7 +459,7 @@ class _dashboardState extends State<dashboard> {
       ],
     );
   }
-  Future addTransaction(double amount, String name, bool isExpense, DateTime date, bool isBank, String remarks) async {
+  Future addTransaction(double amount, String name, bool isExpense, DateTime date, String accountId, String remarks) async {
     //print(currentSessionKey);
     final expenses = Expenses()
       ..amount = amount
@@ -451,7 +467,7 @@ class _dashboardState extends State<dashboard> {
       ..date = date
       ..isExpense = isExpense
       ..sessionKey = currentSessionKey
-      ..isBank = isBank
+      ..accountId = accountId
       ..remarks = remarks;
 
     final box = Boxes.getTransactions();

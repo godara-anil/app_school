@@ -11,12 +11,14 @@ class Expenses extends HiveObject {
   late DateTime date;
   @HiveField(3)
   late String category;
-  @HiveField(5)
+  @HiveField(4)
   late int? sessionKey;
+  @HiveField(5)
+  late String accountId;
   @HiveField(6)
-  late bool? isBank = false;
-  @HiveField(7)
   late String? remarks;
+  @HiveField(7)
+  late DateTime createdAt = DateTime.now();
 }
 @HiveType(typeId:1)
 class Sessions extends HiveObject {
@@ -24,4 +26,24 @@ class Sessions extends HiveObject {
   late bool   isActive = true;
   @HiveField(1)
   late String session;
+}
+@HiveType(typeId: 2)
+class Account extends HiveObject {
+
+  @HiveField(0)
+  late String name;
+  @HiveField(1)
+  late double openingBalance;
+  @HiveField(2)
+  late String type;
+  @HiveField(3)
+  late bool isActive = true;
+  @HiveField(4)
+  late DateTime createdAt = DateTime.now();
+  Account({
+    required this.name,
+    required this.openingBalance,
+    required this.type,
+    this.isActive = true,
+  });
 }

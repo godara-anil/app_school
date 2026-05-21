@@ -9,6 +9,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:app_school/model/Expenses.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:app_school/model/google_api.dart';
+import 'package:app_school/boxes.dart';
 
 
 
@@ -31,11 +32,45 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  print("START 1");
   await Hive.initFlutter();
+  print("START 2");
   Hive.registerAdapter(ExpensesAdapter());
   Hive.registerAdapter(SessionsAdapter());
+  Hive.registerAdapter(AccountAdapter());
+  print("START 3");
   await Hive.openBox<Expenses>('expenses');
+  print("START 4");
   await Hive.openBox<Sessions>('sessions');
+  print("START 5");
+  await Hive.openBox<Account>('accounts');
+  print("START 6");
+  final accountsBox = AccountsBox.getAccounts();
+  if (accountsBox.isEmpty) {
+    await accountsBox.add(
+      Account(
+        name: "Cash",
+        openingBalance: 0,
+        type: "cash",
+      ),
+    );
+
+    await accountsBox.add(
+      Account(
+        name: "SBI Bank",
+        openingBalance: 0,
+        type: "bank",
+      ),
+    );
+
+    await accountsBox.add(
+      Account(
+        name: "HGB",
+        openingBalance: 0,
+        type: "bank",
+      ),
+    );
+  }
   await Workmanager().initialize(
     callbackDispatcher,
       isInDebugMode: true,

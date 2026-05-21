@@ -1,4 +1,4 @@
-package com.anil.app_school
+package com.anil.app_schoolfin
 
 
 import io.flutter.embedding.android.FlutterFragmentActivity
