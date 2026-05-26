@@ -1,13 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:app_school/boxes.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:app_school/model/Expenses.dart';
-import 'package:app_school/services/account_service.dart';
-import 'package:app_school/getActiveSession.dart';
 import '../widget/addExpensesDialog.dart';
+import 'package:app_school/services/transaction_service.dart';
+import 'package:app_school/services/session_service.dart';
+import 'package:app_school/widget/transaction_tile.dart';
 
 class dashboard extends StatefulWidget {
   @override
@@ -16,63 +14,17 @@ class dashboard extends StatefulWidget {
 class _dashboardState extends State<dashboard> {
   int currentSessionKey = 0;
   @override
-  void dispose() {
-    Hive.box('expenses').close();
-    Hive.box('sessions').close();
-    super.dispose();
+  void initState() {
+    super.initState();
+
+    currentSessionKey =
+        SessionService.getActiveSessionKey();
   }
-  double cashBalance = 0;
-  double bankBalance = 0;
-  getCashBankBalance(List<Expenses> transactions) {
 
-    cashBalance = 0;
 
-    bankBalance = 0;
-
-    for (Expenses data in transactions) {
-
-      final account =
-      AccountsBox.getAccounts()
-          .get(int.tryParse(data.accountId));
-
-      if (account == null) continue;
-
-      final isCash =
-          account.type.toLowerCase() == "cash";
-
-      if (data.isExpense) {
-
-        if (isCash) {
-          cashBalance -= data.amount;
-        } else {
-          bankBalance -= data.amount;
-        }
-
-      } else {
-
-        if (isCash) {
-          cashBalance += data.amount;
-        } else {
-          bankBalance += data.amount;
-        }
-      }
-    }
-  }
   @override
   Widget build(BuildContext context) {
-    var  currentSession = getActiveSession.getSession();
-    if(currentSession.length == 0){
-      final session = Sessions()
-      ..isActive = true
-      ..session = '2020-21';
-      final box = Sess.getTransactions();
-      box.add(session);
-      currentSession = getActiveSession.getSession();
-      currentSessionKey = currentSession[0].key;
-    }
-    else {
-       currentSessionKey = currentSession[0].key;
-    }
+
       return Scaffold(
         appBar: AppBar(
           title: Text('Dashboard'),
@@ -116,6 +68,27 @@ class _dashboardState extends State<dashboard> {
                       Text('Reports'),
                     ],
                   )),
+              PopupMenuItem(
+                value: 4,
+                child: Row(
+                  children: [
+                    Icon(Icons.account_balance,
+                        color: Colors.green),
+                    SizedBox(width: 10),
+                    Text('Accounts'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 5,
+                child: Row(
+                  children: [
+                    Icon(Icons.book, color: Colors.green),
+                    SizedBox(width: 10),
+                    Text('Ledger'),
+                  ],
+                ),
+              ),
             ],
               onSelected: (value) {
                  if(value == 1) {
@@ -128,6 +101,12 @@ class _dashboardState extends State<dashboard> {
                  else if (value ==3) {
                    Navigator.pushNamed(context, '/reports');
                  }
+                 else if (value ==4) {
+                   Navigator.pushNamed(context, '/accountsSummary');
+                 }
+                 else if (value == 5) {
+                   Navigator.pushNamed(context, '/ledger');
+                 }
 
               },
             ),
@@ -139,7 +118,18 @@ class _dashboardState extends State<dashboard> {
         context: context,
         builder: (context) => AddExpenseDialog(
           incomeOrExpense : false,
-          onClickDone: addTransaction,
+          onClickDone:  ( amount, category, isExpense, date, accountId, remarks,
+        ) async {
+          await TransactionService.addTransaction(
+          amount: amount,
+          category: category,
+          isExpense: isExpense,
+          date: date,
+          sessionKey: currentSessionKey,
+          accountId: accountId,
+          remarks: remarks,
+          );
+          },
         ),
 
 
@@ -151,16 +141,13 @@ class _dashboardState extends State<dashboard> {
         body: ValueListenableBuilder<Box<Expenses>>(
           valueListenable: Boxes.getTransactions().listenable(),
           builder: (context, box, _) {
-            final transactions = box.values.where((Expenses) =>
-            Expenses.sessionKey == currentSessionKey)
-                .toList().cast<Expenses>();
-            transactions.sort((b, a )=> a.date.compareTo(b.date));
-            getCashBankBalance(transactions);
+            final transactions =
+            TransactionService.getTransactionsBySession(
+                currentSessionKey);
             return buildContent(transactions);
           },
         ),
       );
-
   }
   Widget buildContent(List<Expenses> transactions) {
     if (transactions.isEmpty) {
@@ -171,26 +158,16 @@ class _dashboardState extends State<dashboard> {
 
       );
     } else {
-      final netBalance = transactions.fold<double>(
-        0,
-            (previousValue, transaction) => transaction.isExpense
-            ? previousValue - transaction.amount
-            : previousValue + transaction.amount,
-      );
+      final cashBalance =
+      TransactionService.getCashBalance(transactions);
+
+      final bankBalance =
+      TransactionService.getBankBalance(transactions);
+      final netBalance = TransactionService.getNetBalance(transactions);
       final newBalanceString = '${netBalance.toStringAsFixed(0)}';
       final color = netBalance > 0 ? Colors.green : Colors.red;
-      final netExpense = transactions.fold<double>(
-        0,
-            (previousValue, transaction) => transaction.isExpense
-            ? previousValue + transaction.amount
-            : previousValue,
-      );
-      final netIncome = transactions.fold<double>(
-        0,
-            (previousValue, transaction) => transaction.isExpense
-            ? previousValue
-            : previousValue + transaction.amount,
-      );
+      final netExpense = TransactionService.getNetExpense(transactions);
+      final netIncome = TransactionService.getNetIncome(transactions);
       final newExpenseString = '${netExpense.toStringAsFixed(0)}';
       final newIncomeString = '${netIncome.toStringAsFixed(0)}';
       return Column(
@@ -306,68 +283,21 @@ class _dashboardState extends State<dashboard> {
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(8),
-              itemCount: transactions.length > 5? 5 : transactions.length,
+              itemCount:
+              transactions.length > 5
+                  ? 5
+                  : transactions.length,
               itemBuilder: (BuildContext context, int index) {
                 final transaction = transactions[index];
-                return buildTransaction(context, transaction);
+                return  TransactionTile(
+                  transaction: transaction,
+                );;
               },
             ),
           ),
        ],
       );
     }
-  }
-  Widget buildTransaction(
-      BuildContext context,
-      Expenses transaction,
-      ) {
-    final color = transaction.isExpense ? Colors.red : Colors.green;
-    final date = DateFormat.yMMMd().format(transaction.date);
-    final amount = transaction.amount.toStringAsFixed(0);
-    final accountName = AccountService.getAccountName(
-        transaction.accountId);
-    //print(transaction.accountId);
-   // final bankCash = accountName == null;
-    return Card(
-      color: Colors.white,
-      child: ExpansionTile(
-        tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        title: Text(
-          transaction.category,
-          maxLines: 2,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18,),
-        ),
-        subtitle: Text(
-            date,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        trailing: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              amount,
-              style: TextStyle(
-                  color: color, fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            SizedBox(height: 8.0,),
-            Container(
-              decoration: BoxDecoration (
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: EdgeInsets.all(5.0),
-              child: Text(
-                accountName,
-                style: TextStyle(
-                  fontSize: 13.0,
-                  color: Colors.white,
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
   }
   Widget cardCash(String value) {
     return Row(
@@ -458,19 +388,5 @@ class _dashboardState extends State<dashboard> {
         ),
       ],
     );
-  }
-  Future addTransaction(double amount, String name, bool isExpense, DateTime date, String accountId, String remarks) async {
-    //print(currentSessionKey);
-    final expenses = Expenses()
-      ..amount = amount
-      ..category = name
-      ..date = date
-      ..isExpense = isExpense
-      ..sessionKey = currentSessionKey
-      ..accountId = accountId
-      ..remarks = remarks;
-
-    final box = Boxes.getTransactions();
-    box.add(expenses);
   }
 }

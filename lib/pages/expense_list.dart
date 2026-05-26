@@ -3,21 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:app_school/widget/addExpensesDialog.dart';
 import 'package:app_school/boxes.dart';
-import 'package:app_school/getActiveSession.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:app_school/services/account_service.dart';
+import 'package:app_school/services/transaction_service.dart';
+import 'package:app_school/services/session_service.dart';
+import 'package:app_school/widget/transaction_tile.dart';
 
 
-class expenses extends StatefulWidget {
-  const expenses({Key? key}) : super(key: key);
+
+class ExpensesPage  extends StatefulWidget {
+  const ExpensesPage({Key? key}) : super(key: key);
 
   @override
-  State<expenses> createState() => _expensesState();
+  State<ExpensesPage> createState() => _ExpensesPageState();
 }
 
-class _expensesState extends State<expenses> {
+class _ExpensesPageState extends State<ExpensesPage> {
   String searchQuery = '';
   final searchText = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -25,7 +28,8 @@ class _expensesState extends State<expenses> {
   final amountController = TextEditingController();
   DateTime date = DateTime.now();
   bool isExpense = true;
-  final currentSessionKey = getActiveSession.getSession()[0].key;
+ late int currentSessionKey;
+  // final currentSessionKey = getActiveSession.getSession()[0].key;
   DateTimeRange? _selectedDateRange;
 
   // This function will be triggered when the floating button is pressed
@@ -46,6 +50,8 @@ class _expensesState extends State<expenses> {
   @override
   void initState (){
     super.initState();
+    currentSessionKey =
+        SessionService.getActiveSessionKey();
   }
   @override
   void dispose() {
@@ -121,7 +127,25 @@ class _expensesState extends State<expenses> {
       context: context,
       builder: (context) => AddExpenseDialog(
         incomeOrExpense : isExpense,
-        onClickDone: addTransaction,
+        onClickDone: (
+            amount,
+            name,
+            isExpense,
+            date,
+            accountId,
+            remarks,
+            ) async {
+
+          await TransactionService.addTransaction(
+            amount: amount,
+            category: name,
+            isExpense: isExpense,
+            date: date,
+            sessionKey: currentSessionKey,
+            accountId: accountId,
+            remarks: remarks,
+          );
+        },
       ),
     ),
         backgroundColor: appBarColor,
@@ -130,12 +154,32 @@ class _expensesState extends State<expenses> {
       body: ValueListenableBuilder<Box<Expenses>>(
         valueListenable: Boxes.getTransactions().listenable(),
         builder: (context, box, _) {
-          final transactions = box.values.where((Expenses) => Expenses.isExpense == isExpense)
-              .where((Expenses) => Expenses.sessionKey == currentSessionKey)
-              .where((Expenses) => Expenses.date.isAfter(startDate))
-              .where((Expenses) => Expenses.date.isBefore(endDate))
-              .where((Expenses) => Expenses.category.toLowerCase().contains(searchQuery.toLowerCase()))
-              .toList().cast<Expenses>();
+          final transactions =
+          TransactionService
+              .getTransactionsBySession(
+              currentSessionKey)
+
+              .where(
+                (tx) =>
+            tx.isExpense == isExpense,
+          )
+
+              .where(
+                (tx) => tx.date.isAfter(startDate),
+          )
+
+              .where(
+                (tx) => tx.date.isBefore(endDate),
+          )
+
+              .where(
+                (tx) => tx.category
+                .toLowerCase()
+                .contains(
+              searchQuery.toLowerCase(),
+            ),
+          )
+              .toList();
           transactions.sort((b, a )=> a.date.compareTo(b.date));
           return buildContent(transactions);
         },
@@ -177,7 +221,13 @@ class _expensesState extends State<expenses> {
               itemBuilder: (BuildContext context, int index) {
                 final transaction = transactions[index];
 
-                return buildTransaction(context, transaction);
+                return TransactionTile(
+                  transaction: transaction,
+                  children: buildButtons(
+                    context,
+                    transaction,
+                  ),
+                );
               },
             ),
           ),
@@ -185,57 +235,7 @@ class _expensesState extends State<expenses> {
       );
     }
   }
-  Widget buildTransaction(
-      BuildContext context,
-      Expenses transaction,
-      ) {
-    final color = transaction.isExpense ? Colors.red : Colors.green;
-    final date = DateFormat.yMMMd().format(transaction.date);
-    final amount = transaction.amount.toStringAsFixed(0);
-//    final bankCash = transaction.isBank! ? "Bank" : "Cash";
-    final accountName = AccountService.getAccountName(
-        transaction.accountId);
-    return Card(
-      color: Colors.white,
-      child: ExpansionTile(
-        tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        title: Text(
-          transaction.category,
-          maxLines: 2,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        subtitle: Text(date),
-        trailing: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              amount,
-              style: TextStyle(
-                  color: color, fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            SizedBox(height: 8.0,),
-           Container(
-              decoration: BoxDecoration (
-                color: Colors.lightGreen,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: EdgeInsets.all(5.0),
-              child: Text(
-                accountName,
-                style: TextStyle(
-                    fontSize: 13.0,
-                  color: Colors.white,
-                  ),
-              ),
-            )
-          ],
-        ),
-        children: [
-          buildButtons(context, transaction),
-        ],
-      ),
-    );
-  }
+
   Widget buildButtons(BuildContext context, Expenses transaction) => Column(
     children: [
       Row(
@@ -250,14 +250,21 @@ class _expensesState extends State<expenses> {
             child: TextButton.icon(
               label: Text('Edit'),
               icon: Icon(Icons.edit),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => AddExpenseDialog(
+              onPressed: () => showDialog(
+                    context: context,
+                    builder: (context) => AddExpenseDialog(
                     expenses: transaction,
                     onClickDone: (amount, name, isExpense, date, accountId, remarks) =>
-                        editTransaction(transaction, name, amount, isExpense, date, accountId, remarks),
+                        TransactionService.updateTransaction(
+                          expense: transaction,
+                          amount: amount,
+                          category: name,
+                          isExpense: isExpense,
+                          date: date,
+                          accountId: accountId,
+                          remarks: remarks,
+                        ),
                   ),
-                ),
               ),
             ),
           ),
@@ -272,34 +279,6 @@ class _expensesState extends State<expenses> {
       ),
     ],
   );
-  Future addTransaction(double amount, String name, bool isExpense, DateTime date, String accountId, String remarks) async {
-    print(accountId);
-    final expenses = Expenses()
-      ..amount = amount
-      ..category = name
-      ..date = date
-      ..isExpense = isExpense
-      ..sessionKey = currentSessionKey
-      ..accountId = accountId
-      ..remarks = remarks;
-
-    final box = Boxes.getTransactions();
-    box.add(expenses);
-    // print(amount);
-    // print(name);
-    // print(date);
-}
-  void editTransaction(Expenses transaction, String name, double amount, bool isExpense, DateTime date, String accountId,
-      String remarks
-      ) {
-    transaction.category = name;
-    transaction.remarks = remarks;
-    transaction.amount = amount;
-    transaction.isExpense = isExpense;
-   transaction.accountId = accountId;
-    transaction.date = date;
-    transaction.save();
-  }
 
   void deleteTransaction(Expenses transaction) async{
     final response = await showDialog<bool>(
@@ -320,7 +299,8 @@ class _expensesState extends State<expenses> {
       ),
     );
     if(response != null && response == true) {
-       transaction.delete();
+      TransactionService.deleteTransaction(
+          transaction);
       //print(response);
     }
    //

@@ -10,6 +10,9 @@ import 'package:app_school/model/Expenses.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:app_school/model/google_api.dart';
 import 'package:app_school/boxes.dart';
+import 'package:app_school/pages/account_summary_page.dart';
+import 'package:app_school/pages/ledger_page.dart';
+import 'package:app_school/pages/account_ledger_page.dart';
 
 
 
@@ -32,19 +35,13 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  print("START 1");
   await Hive.initFlutter();
-  print("START 2");
   Hive.registerAdapter(ExpensesAdapter());
   Hive.registerAdapter(SessionsAdapter());
   Hive.registerAdapter(AccountAdapter());
-  print("START 3");
   await Hive.openBox<Expenses>('expenses');
-  print("START 4");
   await Hive.openBox<Sessions>('sessions');
-  print("START 5");
   await Hive.openBox<Account>('accounts');
-  print("START 6");
   final accountsBox = AccountsBox.getAccounts();
   if (accountsBox.isEmpty) {
     await accountsBox.add(
@@ -90,10 +87,13 @@ void main() async {
     home: FingerprintPage(),
     routes: {
       '/dashboard': (context) => dashboard(),
-      '/expenses': (context) => const expenses(),
+      '/expenses': (context) => const ExpensesPage(),
       '/settings': (context) => const Settings_session(),
       '/dataBackUp': (context) => const dataBackUp(),
       '/reports': (context) => const reports(),
+      '/accountsSummary': (context) => const AccountSummaryPage(),
+      '/ledger': (context) => const LedgerPage(),
+     // '/accountLedger': (context) => const AccountLedgerPage(),
     },
     /*theme: ThemeData(
       primaryColor: Colors.green[700],
