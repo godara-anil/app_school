@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "741720553767",
+    "project_id": "school-fin-app",
+    "storage_bucket": "school-fin-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:741720553767:android:3fdc24959bb7d657eb9102",
+        "android_client_info": {
+          "package_name": "com.anil.app_schoolfin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "741720553767-db24m8mvqvfc1qlr21ttrvem80bn1qnm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.anil.app_schoolfin",
+            "certificate_hash": "46f93c8bef48f9326f263ca514a79d5fa6ab7526"
+          }
+        },
+        {
+          "client_id": "741720553767-bk7sqfspi79vvk80ac1tkc217p5kdq0j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1PIPaH7-_MBuVALD4_IsHPT3sJzkeUd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "741720553767-bk7sqfspi79vvk80ac1tkc217p5kdq0j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

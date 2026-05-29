@@ -29,89 +29,230 @@ class _dashboardState extends State<dashboard> {
         appBar: AppBar(
           title: Text('Dashboard'),
           backgroundColor: Colors.green[700],
-          actions: <Widget>[
-            PopupMenuButton <int> (itemBuilder: (context) => [
-              PopupMenuItem(
-                  value: 1,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.settings,
-                        color: Colors.green,
-                      ),
-                      SizedBox(width: 10,),
-                      Text('Sessions'),
-                    ],
-                  )
-              ),
-              PopupMenuItem(
-                  value: 2,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.backup,
-                        color: Colors.green,
-                      ),
-                      SizedBox(width: 10,),
-                      Text('Data Backup'),
-                    ],
-                  )),
-              PopupMenuItem(
-                  value: 3,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.data_thresholding,
-                        color: Colors.green,
-                      ),
-                      SizedBox(width: 10,),
-                      Text('Reports'),
-                    ],
-                  )),
-              PopupMenuItem(
-                value: 4,
-                child: Row(
-                  children: [
-                    Icon(Icons.account_balance,
-                        color: Colors.green),
-                    SizedBox(width: 10),
-                    Text('Accounts'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 5,
-                child: Row(
-                  children: [
-                    Icon(Icons.book, color: Colors.green),
-                    SizedBox(width: 10),
-                    Text('Ledger'),
-                  ],
-                ),
-              ),
-            ],
-              onSelected: (value) {
-                 if(value == 1) {
-                   Navigator.pushNamed(context, '/settings').then((value) =>
-                       setState(() => {}));
-                 }
-                 else if (value ==2) {
-                   Navigator.pushNamed(context, '/dataBackUp');
-                 }
-                 else if (value ==3) {
-                   Navigator.pushNamed(context, '/reports');
-                 }
-                 else if (value ==4) {
-                   Navigator.pushNamed(context, '/accountsSummary');
-                 }
-                 else if (value == 5) {
-                   Navigator.pushNamed(context, '/ledger');
-                 }
+          actions: [
 
-              },
+            IconButton(
+
+              icon: const Icon(
+                Icons.notifications_none,
+              ),
+
+              onPressed: () {},
             ),
           ],
         ),
+        drawer: Drawer(
+
+          child: ListView(
+
+            padding: EdgeInsets.zero,
+
+            children: [
+
+              DrawerHeader(
+
+                decoration: BoxDecoration(
+                  color: Colors.green[700],
+                ),
+
+                child: const Column(
+
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+                  mainAxisAlignment:
+                  MainAxisAlignment.end,
+
+                  children: [
+
+                    Icon(
+                      Icons.account_balance,
+                      color: Colors.white,
+                      size: 50,
+                    ),
+
+                    SizedBox(height: 10),
+
+                    Text(
+
+                      'SVS Finance ERP',
+
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight:
+                        FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: 4),
+
+                    Text(
+
+                      'School Finance Management',
+
+                      style: TextStyle(
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              ListTile(
+
+                leading: const Icon(
+                  Icons.dashboard,
+                  color: Colors.green,
+                ),
+
+                title: const Text(
+                  'Dashboard',
+                ),
+
+                onTap: () {
+
+                  Navigator.pop(context);
+                },
+              ),
+
+              ListTile(
+
+                leading: const Icon(
+                  Icons.book,
+                  color: Colors.green,
+                ),
+
+                title: const Text(
+                  'Ledger',
+                ),
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  Navigator.pushNamed(
+                    context,
+                    '/ledger',
+                  );
+                },
+              ),
+
+              ListTile(
+
+                leading: const Icon(
+                  Icons.account_balance,
+                  color: Colors.green,
+                ),
+
+                title: const Text(
+                  'Accounts',
+                ),
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  Navigator.pushNamed(
+                    context,
+                    '/accounts',
+                  );
+                },
+              ),
+
+              ListTile(
+
+                leading: const Icon(
+                  Icons.category,
+                  color: Colors.green,
+                ),
+
+                title: const Text(
+                  'Categories',
+                ),
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  Navigator.pushNamed(
+                    context,
+                    '/categories',
+                  );
+                },
+              ),
+
+              ListTile(
+
+                leading: const Icon(
+                  Icons.bar_chart,
+                  color: Colors.green,
+                ),
+
+                title: const Text(
+                  'Reports',
+                ),
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  Navigator.pushNamed(
+                    context,
+                    '/reports',
+                  );
+                },
+              ),
+
+              const Divider(),
+
+              ListTile(
+
+                leading: const Icon(
+                  Icons.backup,
+                  color: Colors.green,
+                ),
+
+                title: const Text(
+                  'Backup',
+                ),
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  Navigator.pushNamed(
+                    context,
+                    '/dataBackUp',
+                  );
+                },
+              ),
+
+              ListTile(
+
+                leading: const Icon(
+                  Icons.settings,
+                  color: Colors.green,
+                ),
+
+                title: const Text(
+                  'Sessions',
+                ),
+
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  Navigator.pushNamed(
+                    context,
+                    '/settings',
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(
           onPressed: () => showDialog(
@@ -160,7 +301,6 @@ class _dashboardState extends State<dashboard> {
     } else {
       final cashBalance =
       TransactionService.getCashBalance(transactions);
-
       final bankBalance =
       TransactionService.getBankBalance(transactions);
       final netBalance = TransactionService.getNetBalance(transactions);
@@ -275,7 +415,87 @@ class _dashboardState extends State<dashboard> {
               ),
             ],
           ),
-          SizedBox(height: 24,),
+          SizedBox(height: 24),
+          Card(
+            elevation: 6,
+            margin: const EdgeInsets.symmetric(
+              horizontal: 20,
+            ),
+
+            shape: RoundedRectangleBorder(
+              borderRadius:
+              BorderRadius.circular(12),
+            ),
+
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Today's Summary",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight:FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Row(
+
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceAround,
+
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor:
+                        color.withOpacity(0.15),
+                        child: Icon(
+                          Icons.arrow_downward,
+                          color: Colors.green,
+                        ),
+                      ),
+                      Text(
+                        getTodayIncome(
+                          transactions,
+                        ),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight:
+                          FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor:
+                        color.withOpacity(0.15),
+                        child: Icon(
+                          Icons.arrow_upward,
+                          color: Colors.red,
+                        ),
+                      ),
+                      Text(
+                        getTodayExpense(
+                          transactions,
+                        ),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight:
+                          FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: 24),
           Text(
               "Latest Transactions",
           style: TextStyle(fontSize:20, fontWeight: FontWeight.bold),
@@ -388,5 +608,31 @@ class _dashboardState extends State<dashboard> {
         ),
       ],
     );
+  }
+  String getTodayIncome( List<Expenses> transactions,) {
+
+    double total = 0;
+    for (var tx in transactions) {
+      if (isToday(tx.date) && !tx.isExpense) {
+        total += tx.amount;
+      }
+    }
+    return total.toStringAsFixed(0);
+  }
+  String getTodayExpense(List<Expenses> transactions,) {
+
+    double total = 0;
+    for (var tx in transactions) {
+      if (isToday(tx.date) && tx.isExpense) {
+        total += tx.amount;
+      }
+    }
+    return total.toStringAsFixed(0);
+  }
+  bool isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 }

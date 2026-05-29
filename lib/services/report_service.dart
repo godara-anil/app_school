@@ -80,4 +80,77 @@ class ReportService {
 
     return data;
   }
+  static List<Map<String, dynamic>>
+  getMonthlyReport(
+      List<Expenses> transactions,
+      ) {
+
+    Map<String, Map<String, double>>
+    monthlyData = {};
+
+    for (var tx in transactions) {
+
+      final monthKey =
+          "${tx.date.year}-${tx.date.month}";
+
+      if (!monthlyData.containsKey(
+        monthKey,
+      )) {
+
+        monthlyData[monthKey] = {
+
+          "income": 0,
+          "expense": 0,
+        };
+      }
+
+      if (tx.isExpense) {
+
+        monthlyData[monthKey]!["expense"] =
+            monthlyData[monthKey]!["expense"]! +
+                tx.amount;
+
+      } else {
+
+        monthlyData[monthKey]!["income"] =
+            monthlyData[monthKey]!["income"]! +
+                tx.amount;
+      }
+    }
+
+    List<Map<String, dynamic>> result =
+    [];
+
+    monthlyData.forEach(
+          (month, data) {
+
+        final income =
+            data["income"] ?? 0;
+
+        final expense =
+            data["expense"] ?? 0;
+
+        result.add({
+
+          "month": month,
+
+          "income": income,
+
+          "expense": expense,
+
+          "balance":
+          income - expense,
+        });
+      },
+    );
+
+    result.sort(
+          (a, b) =>
+          b["month"].compareTo(
+            a["month"],
+          ),
+    );
+
+    return result;
+  }
 }

@@ -1,5 +1,5 @@
 import 'package:app_school/pages/authenticate.dart';
-import 'package:app_school/pages/reports.dart';
+import 'package:app_school/pages/reports_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:app_school/pages/dashboard.dart';
 import 'package:app_school/pages/expense_list.dart';
@@ -11,8 +11,11 @@ import 'package:workmanager/workmanager.dart';
 import 'package:app_school/model/google_api.dart';
 import 'package:app_school/boxes.dart';
 import 'package:app_school/pages/account_summary_page.dart';
-import 'package:app_school/pages/ledger_page.dart';
 import 'package:app_school/pages/account_ledger_page.dart';
+import 'package:app_school/pages/ledger_page.dart';
+import 'package:app_school/pages/accounts_page.dart';
+import 'package:app_school/model/category_model.dart';
+import 'package:app_school/pages/category_page.dart';
 
 
 
@@ -39,9 +42,11 @@ void main() async {
   Hive.registerAdapter(ExpensesAdapter());
   Hive.registerAdapter(SessionsAdapter());
   Hive.registerAdapter(AccountAdapter());
+  Hive.registerAdapter(CategoryAdapter());
   await Hive.openBox<Expenses>('expenses');
   await Hive.openBox<Sessions>('sessions');
   await Hive.openBox<Account>('accounts');
+  await Hive.openBox<Category>('categories');
   final accountsBox = AccountsBox.getAccounts();
   if (accountsBox.isEmpty) {
     await accountsBox.add(
@@ -89,10 +94,12 @@ void main() async {
       '/dashboard': (context) => dashboard(),
       '/expenses': (context) => const ExpensesPage(),
       '/settings': (context) => const Settings_session(),
-      '/dataBackUp': (context) => const dataBackUp(),
-      '/reports': (context) => const reports(),
+      '/dataBackUp': (context) => const DataBackupPage(),
+      '/reports': (context) => const ReportsHomePage(),
       '/accountsSummary': (context) => const AccountSummaryPage(),
+      '/accounts': (context) => const AccountsPage(),
       '/ledger': (context) => const LedgerPage(),
+      '/categories': (context) => const CategoryPage(),
      // '/accountLedger': (context) => const AccountLedgerPage(),
     },
     /*theme: ThemeData(

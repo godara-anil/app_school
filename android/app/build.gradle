@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "org.jetbrains.kotlin.android"
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -49,7 +50,7 @@ android {
        }
 
         release {
-
+            signingConfig signingConfigs.debug
         }
     }
     configurations.all {
@@ -67,4 +68,6 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.20"
+    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
 }
+

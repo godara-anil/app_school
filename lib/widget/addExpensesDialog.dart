@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:app_school/boxes.dart';
 import 'package:intl/intl.dart';
-import 'package:app_school/model/Expenses.dart';
 
+import 'package:app_school/boxes.dart';
+import 'package:app_school/model/Expenses.dart';
+import 'package:app_school/model/category_model.dart';
 
 class AddExpenseDialog extends StatefulWidget {
+
   final Expenses? expenses;
+
   final incomeOrExpense;
 
   final Function(
@@ -25,15 +28,20 @@ class AddExpenseDialog extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<AddExpenseDialog> createState() => _AddExpenseDialogState();
+  State<AddExpenseDialog> createState() =>
+      _AddExpenseDialogState();
 }
 
-class _AddExpenseDialogState extends State<AddExpenseDialog> {
+class _AddExpenseDialogState
+    extends State<AddExpenseDialog> {
+
   final formKey = GlobalKey<FormState>();
 
-  final nameController = TextEditingController();
-  final remarksController = TextEditingController();
-  final amountController = TextEditingController();
+  final remarksController =
+  TextEditingController();
+
+  final amountController =
+  TextEditingController();
 
   DateTime date = DateTime.now();
 
@@ -41,47 +49,96 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   Account? selectedAccount;
 
+  Category? selectedCategory;
+
   @override
   void initState() {
+
     super.initState();
 
-    final accounts = AccountsBox.getAccounts().values
+    final accounts =
+    AccountsBox.getAccounts()
+        .values
         .where((a) => a.isActive)
         .toList()
         .cast<Account>();
+    final categories =
+    CategoryBox.getCategories()
+        .values
+        .where((c) => c.isActive)
+        .toList()
+        .cast<Category>();
 
+    try {
+
+      selectedCategory =
+          categories.firstWhere(
+                (c) =>
+            c.name ==
+                widget.expenses!.category,
+          );
+
+    } catch (e) {
+
+      selectedCategory = null;
+    }
     if (widget.expenses != null) {
-      final expenses = widget.expenses!;
-
-      nameController.text = expenses.category;
-
+      final expenses =
+      widget.expenses!;
+      amountController.text =
+          expenses.amount.toString();
       if (expenses.remarks != null) {
-        remarksController.text = expenses.remarks!;
+        remarksController.text =
+        expenses.remarks!;
       }
 
-      amountController.text = expenses.amount.toString();
+      isExpense =
+          expenses.isExpense;
 
-      isExpense = expenses.isExpense;
+      date =
+          expenses.date;
 
-      date = expenses.date;
+      selectedAccount =
+          AccountsBox.getAccounts().get(
+            int.tryParse(
+              expenses.accountId,
+            ),
+          );
 
-      // Load selected account in edit mode
-      selectedAccount = AccountsBox.getAccounts()
-          .get(int.tryParse(expenses.accountId));
+      try {
+        selectedCategory =
+            categories.firstWhere(
+                  (c) =>
+              c.name ==
+                  expenses.category,
+            );
+
+      } catch (e) {
+        selectedCategory = null;
+      }
+
     } else {
-      isExpense = widget.incomeOrExpense ?? true;
 
-      // Default account
+      isExpense =
+          widget.incomeOrExpense ?? true;
+
       if (accounts.isNotEmpty) {
-        selectedAccount = accounts.first;
+        selectedAccount =
+            accounts.first;
+      }
+
+      if (categories.isNotEmpty) {
+        selectedCategory =
+            categories.first;
       }
     }
   }
 
   @override
   void dispose() {
-    nameController.dispose();
+
     amountController.dispose();
+
     remarksController.dispose();
 
     super.dispose();
@@ -89,214 +146,342 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.expenses != null;
+
+    final isEditing =
+        widget.expenses != null;
 
     final title = isEditing
         ? 'Edit Transaction'
         : 'Add Transaction';
 
-    final formattedDate = DateFormat.yMMMd().format(date);
+    final formattedDate =
+    DateFormat.yMMMd().format(date);
 
-    final accounts = AccountsBox.getAccounts().values
+    final accounts =
+    AccountsBox.getAccounts()
+        .values
         .where((a) => a.isActive)
         .toList()
         .cast<Account>();
 
+    final categories =
+    CategoryBox.getCategories()
+        .values
+        .where((c) => c.isActive)
+        .toList()
+        .cast<Category>();
     return AlertDialog(
       title: Text(
         title,
         style: TextStyle(
-          color: isExpense ? Colors.red : Colors.green,
+          color: isExpense
+              ? Colors.red
+              : Colors.green,
         ),
       ),
+
       content: Form(
+
         key: formKey,
+
         child: SingleChildScrollView(
+
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+            children: [
               const SizedBox(height: 8),
-
-              buildName(),
-
+              buildCategoryDropdown(),
               const SizedBox(height: 8),
-
               buildAmount(),
-
               const SizedBox(height: 8),
-
               buildRemarks(),
-
               const SizedBox(height: 8),
-
               buildDate(formattedDate),
-
               const SizedBox(height: 8),
-
               buildDivider(),
-
               const SizedBox(height: 8),
-
-              buildAccountDropdown(accounts),
-
+              buildAccountDropdown(
+                accounts,
+              ),
               const SizedBox(height: 8),
-
               buildDivider(),
-
               const SizedBox(height: 8),
-
               buildChoiceChips(),
             ],
           ),
         ),
       ),
-      actions: <Widget>[
+
+      actions: [
+
         buildCancelButton(context),
-        buildAddButton(context, isEditing: isEditing),
+
+        buildAddButton(
+          context,
+          isEditing: isEditing,
+        ),
       ],
     );
   }
 
-  Widget buildName() => TextFormField(
-    controller: nameController,
-    decoration: const InputDecoration(
-      border: OutlineInputBorder(),
-      hintText: 'Enter Name',
-    ),
-    validator: (name) =>
-    name != null && name.isEmpty
-        ? 'Enter a name'
-        : null,
-  );
+  Widget buildCategoryDropdown() {
+    print("this is isExpense" + isExpense.toString());
+    final categories =
+    CategoryBox.getCategories()
+        .values
+        .where(
+          (c) =>
+      c.isActive &&
+          c.isExpense == isExpense,
+    )
+        .toList()
+        .cast<Category>();
+    if (
+    selectedCategory != null &&
 
-  Widget buildRemarks() => TextFormField(
-    controller: remarksController,
-    decoration: const InputDecoration(
-      border: OutlineInputBorder(),
-      hintText: 'Remarks',
-    ),
-  );
-
-  Widget buildDate(String formattedDate) => Row(
-    mainAxisAlignment:
-    MainAxisAlignment.spaceEvenly,
-    children: [
-      Text(formattedDate),
-      TextButton(
-        onPressed: () async {
-          DateTime? newDate =
-          await showDatePicker(
-            context: context,
-            initialDate: date,
-            firstDate: DateTime(2020),
-            lastDate: DateTime.now(),
-          );
-
-          if (newDate == null) return;
-
-          setState(() => date = newDate);
-        },
-        child: const Icon(
-          Icons.calendar_month,
-          color: Colors.green,
-        ),
-      ),
-    ],
-  );
-
-  Widget buildAmount() => TextFormField(
-    decoration: const InputDecoration(
-      border: OutlineInputBorder(),
-      hintText: 'Enter Amount',
-    ),
-    keyboardType: TextInputType.number,
-    validator: (amount) =>
-    amount != null &&
-        double.tryParse(amount) == null
-        ? 'Enter a valid number'
-        : null,
-    controller: amountController,
-  );
-
-  Widget buildAccountDropdown(
-      List<Account> accounts) {
-    return DropdownButtonFormField<Account>(
-      value: selectedAccount,
+        !categories.contains(selectedCategory)
+    ) {
+      selectedCategory = null;
+    }
+    return DropdownButtonFormField<Category>(
+      value: selectedCategory,
       decoration: const InputDecoration(
-        labelText: 'Select Account',
+        labelText: 'Select Category',
         border: OutlineInputBorder(),
       ),
+      items: categories.map((category) {
+
+        return DropdownMenuItem<Category>(
+
+          value: category,
+
+          child: Text(category.name),
+        );
+
+      }).toList(),
+
+      onChanged: (value) {
+        setState(() {
+          selectedCategory = value;
+        });
+      },
+
+      validator: (value) {
+
+        if (value == null) {
+          return 'Please select category';
+        }
+
+        return null;
+      },
+    );
+  }
+
+  Widget buildRemarks() =>
+      TextFormField(
+
+        controller: remarksController,
+
+        decoration:
+        const InputDecoration(
+
+          border: OutlineInputBorder(),
+
+          hintText: 'Remarks',
+        ),
+      );
+
+  Widget buildDate(
+      String formattedDate,
+      ) =>
+      Row(
+        mainAxisAlignment:
+        MainAxisAlignment.spaceEvenly,
+
+        children: [
+
+          Text(formattedDate),
+
+          TextButton(
+
+            onPressed: () async {
+
+              DateTime? newDate =
+              await showDatePicker(
+
+                context: context,
+
+                initialDate: date,
+
+                firstDate: DateTime(2020),
+
+                lastDate: DateTime.now(),
+              );
+
+              if (newDate == null) {
+                return;
+              }
+
+              setState(() {
+
+                date = newDate;
+              });
+            },
+
+            child: const Icon(
+              Icons.calendar_month,
+              color: Colors.green,
+            ),
+          ),
+        ],
+      );
+
+  Widget buildAmount() =>
+      TextFormField(
+
+        decoration:
+        const InputDecoration(
+
+          border: OutlineInputBorder(),
+
+          hintText: 'Enter Amount',
+        ),
+
+        keyboardType:
+        TextInputType.number,
+
+        validator: (amount) {
+
+          if (amount == null ||
+              amount.isEmpty) {
+
+            return 'Enter amount';
+          }
+
+          if (double.tryParse(amount)
+              == null) {
+
+            return 'Enter valid number';
+          }
+
+          return null;
+        },
+
+        controller: amountController,
+      );
+
+  Widget buildAccountDropdown(
+      List<Account> accounts,
+      ) {
+
+    return DropdownButtonFormField<Account>(
+
+      value: selectedAccount,
+
+      decoration: const InputDecoration(
+
+        labelText: 'Select Account',
+
+        border: OutlineInputBorder(),
+      ),
+
       items: accounts.map((account) {
+
         return DropdownMenuItem<Account>(
+
           value: account,
+
           child: Text(
             '${account.name} (${account.type})',
           ),
         );
+
       }).toList(),
+
       onChanged: (value) {
+
         setState(() {
+
           selectedAccount = value;
         });
       },
+
       validator: (value) {
+
         if (value == null) {
           return 'Please select account';
         }
+
         return null;
       },
     );
   }
 
   Widget buildChoiceChips() => Row(
+
     mainAxisAlignment:
     MainAxisAlignment.spaceEvenly,
+
     children: [
+
       ChoiceChip(
+
         label: Text(
           "Income",
+
           style: TextStyle(
-            fontSize: 18.0,
+            fontSize: 18,
+
             color: isExpense
                 ? Colors.black
                 : Colors.white,
           ),
         ),
-        selectedColor: Colors.lightGreen,
-        onSelected: (val) =>
-            setState(() => isExpense = !val),
+
+        selectedColor:
+        Colors.lightGreen,
+
+        onSelected: (val) {
+          setState(() {
+            isExpense = !val;
+            selectedCategory = null;
+          });
+        },
         selected: !isExpense,
       ),
       ChoiceChip(
         label: Text(
           "Expense",
           style: TextStyle(
-            fontSize: 18.0,
+            fontSize: 18,
             color: isExpense
                 ? Colors.white
                 : Colors.black,
           ),
         ),
-        selectedColor: Colors.redAccent,
-        onSelected: (val) =>
-            setState(() => isExpense = val),
+        selectedColor:
+        Colors.redAccent,
+        onSelected: (val) {
+          setState(() {
+            isExpense = val;
+            selectedCategory = null;
+          });
+        },
         selected: isExpense,
       ),
     ],
   );
-
-  Widget buildDivider() => const Divider(
-    color: Colors.grey,
-    height: 5,
-    thickness: 1,
-    indent: 5,
-    endIndent: 5,
-  );
+  Widget buildDivider() =>
+      const Divider(
+        color: Colors.grey,
+      );
 
   Widget buildCancelButton(
-      BuildContext context) =>
-      TextButton(
+      BuildContext context,
+      ) =>  TextButton(
+
         child: const Text('Cancel'),
+
         onPressed: () =>
             Navigator.of(context).pop(),
       );
@@ -305,37 +490,46 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       BuildContext context, {
         required bool isEditing,
       }) {
-    final text = isEditing ? 'Save' : 'Add';
+
+    final text =
+    isEditing ? 'Save' : 'Add';
 
     return TextButton(
+
       child: Text(text),
+
       onPressed: () async {
+
         final isValid =
         formKey.currentState!.validate();
 
-        if (isValid) {
-          final name = nameController.text;
+        if (!isValid) return;
 
-          final remarks =
-              remarksController.text;
+        final amount =
+            double.tryParse(
+              amountController.text,
+            ) ??
+                0;
 
-          final amount =
-              double.tryParse(
-                amountController.text,
-              ) ??
-                  0;
+        final remarks =
+            remarksController.text;
 
-          widget.onClickDone(
-            amount,
-            name,
-            isExpense,
-            date,
-            selectedAccount!.key.toString(),
-            remarks,
-          );
+        widget.onClickDone(
 
-          Navigator.of(context).pop();
-        }
+          amount,
+
+          selectedCategory!.name,
+
+          isExpense,
+
+          date,
+
+          selectedAccount!.key.toString(),
+
+          remarks,
+        );
+
+        Navigator.of(context).pop();
       },
     );
   }
