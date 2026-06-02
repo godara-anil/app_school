@@ -90,7 +90,6 @@ class _ReportPageState
 
     final reportData =
     isExpense
-
         ? ReportService
         .getCategoryWiseExpense(
         transactions)

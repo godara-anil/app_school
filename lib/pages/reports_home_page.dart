@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:app_school/pages/report_page.dart';
 import 'package:app_school/pages/monthly_report_page.dart';
 import 'package:app_school/pages/account_report_page.dart';
+import 'package:app_school/pages/expense_pie_chart_page.dart';
 
 class ReportsHomePage
     extends StatelessWidget {
@@ -138,15 +139,14 @@ class ReportsHomePage
               Colors.purple,
 
               onTap: () {
+                Navigator.push(
 
-                ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(
 
-                  const SnackBar(
-                    content: Text(
-                      "Coming Soon",
-                    ),
+                  MaterialPageRoute(
+
+                    builder: (_) =>
+                    const ExpensePieChartPage(),
                   ),
                 );
               },

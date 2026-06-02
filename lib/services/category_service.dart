@@ -31,13 +31,10 @@ class CategoryService {
   static Future<void> deleteCategory(
       Category category,
       ) async {
-
     await category.delete();
   }
 
-  static List<Category> getCategories({
-    bool? isExpense,
-  }) {
+  static List<Category> getCategories({bool? isExpense,}) {
 
     var categories =
     Boxes.getCategories()
@@ -61,5 +58,30 @@ class CategoryService {
     );
 
     return categories;
+  }
+
+  static Future<void> ensureTransferCategory() async {
+    final exists =
+    CategoryBox
+        .getCategories()
+        .values
+        .any(
+          (c) =>
+      c.name
+          .toLowerCase() ==
+          "transfer",
+    );
+
+    if (exists) return;
+
+    await CategoryBox
+        .getCategories()
+        .add(
+      Category(
+        name: "Transfer",
+        isExpense: false,
+        isActive: true,
+      ),
+    );
   }
 }

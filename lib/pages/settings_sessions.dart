@@ -1,13 +1,14 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:app_school/model/Expenses.dart';
 import 'package:app_school/boxes.dart';
 import 'package:app_school/widget/addSessionDialog.dart';
+import 'package:app_school/services/session_service.dart';
 
 
 class Settings_session extends StatefulWidget {
+
   const Settings_session({Key? key}) : super(key: key);
 
   @override
@@ -27,9 +28,35 @@ class _Settings_sessionState extends State<Settings_session> {
         onPressed: () => showDialog(
       context: context,
       builder: (context) => AddSessionDialog(
-        onClickDone: addTransaction,
-      ),
+        onClickDone: (
+            isActive,
+            name,
+            carryForward,
+            ) async {
 
+          try {
+
+            await SessionService.createSession(
+              name,
+              carryForward,
+            );
+
+          } catch (e) {
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(
+
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          }
+
+        },
+      )
     ),
         backgroundColor: Colors.green[700],
         child: const Icon(Icons.add),
@@ -108,19 +135,62 @@ class _Settings_sessionState extends State<Settings_session> {
             MaterialPageRoute(
               builder: (context) => AddSessionDialog(
                 sessions: session,
-                onClickDone: (isActive, name) =>
-                    editTransaction(session, name, isActive,),
+                onClickDone: (isActive, name, carryForward) =>
+                SessionService.editSession(session, name, isActive,),
               ),
             ),
           ),
         ),
-
-      ),
+        ),
       Expanded(
         child: TextButton.icon(
           label: Text('Delete'),
           icon: Icon(Icons.delete,),
-          onPressed: () => deleteTransaction(context, session),
+          onPressed: () async {
+
+            final error = await
+            SessionService
+                .deleteSession(
+              session,
+            );
+
+            if (error != null) {
+
+              showDialog(
+
+                context: context,
+
+                builder: (_) => AlertDialog(
+
+                  title: const Text(
+                    'Alert',
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                  ),
+
+                  content: Text(error),
+
+                  actions: [
+
+                    TextButton(
+
+                      onPressed: () {
+
+                        Navigator.pop(
+                          context,
+                        );
+                      },
+
+                      child: const Text(
+                        'OK',
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
         ),
       ),
       Expanded(
@@ -140,78 +210,14 @@ class _Settings_sessionState extends State<Settings_session> {
       );
     }
   }
-  Future addTransaction(isActive, name) async {
-    final session = Sessions()
-      ..isActive = isActive
-      ..session = name;
-    final box = Sess.getTransactions();
-    box.add(session);
-  }
-  void editTransaction(
+  Future<void> makeActive(
       Sessions session,
-      String name,
-      bool isActive,
-      ) {
-    session.session = name;
-    session.isActive = isActive;
-    session.save();
-  }
+      ) async {
 
-  void deleteTransaction(context, Sessions transaction) async{
-    final expenseBox = await Boxes.getTransactions().values
-        .where((Expenses) => Expenses.sessionKey == transaction.key)
-        .toList().cast<Expenses>();
-    if(transaction.isActive) {
-      showAlertDialog(context, true);
-    }
-    else if (expenseBox.length != 0){
-      showAlertDialog(context, false);
-    }
-    else {
-      transaction.delete();
-       }
-  }
-  showAlertDialog(BuildContext context, reason) {
-
-    String textShow = reason ? "Can not delete active session." : "Can not delete session.";
-    // Create button
-
-    Widget okButton = TextButton(
-      child: Text("OK"),
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
+    await SessionService
+        .setActiveSession(
+      session,
     );
-    // Create AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("Alert",
-      style: TextStyle(color: Colors.red)),
-      content: Text('$textShow'),
-      actions: [
-        okButton,
-      ],
-    );
-
-    // show the dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
-  }
-  void makeActive(Sessions session){
-    final box = Sess.getTransactions().values.where((Sessions) => Sessions.isActive == true)
-        .toList().cast<Sessions>();
-    session.isActive = true;
-    if(box.length == 1) {
-      makeInactive(Sessions, box[0]);
-    }
-    session.save();
-  }
-  void makeInactive(Sessions, session){
-    session.isActive = false;
-    session.save();
   }
 }
 

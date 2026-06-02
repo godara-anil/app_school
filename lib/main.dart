@@ -16,6 +16,7 @@ import 'package:app_school/pages/ledger_page.dart';
 import 'package:app_school/pages/accounts_page.dart';
 import 'package:app_school/model/category_model.dart';
 import 'package:app_school/pages/category_page.dart';
+import 'package:app_school/pages/expense_pie_chart_page.dart';
 
 
 
@@ -48,11 +49,10 @@ void main() async {
   await Hive.openBox<Account>('accounts');
   await Hive.openBox<Category>('categories');
   final accountsBox = AccountsBox.getAccounts();
-  if (accountsBox.isEmpty) {
+  /*if (accountsBox.isEmpty) {
     await accountsBox.add(
       Account(
         name: "Cash",
-        openingBalance: 0,
         type: "cash",
       ),
     );
@@ -72,7 +72,7 @@ void main() async {
         type: "bank",
       ),
     );
-  }
+  }*/
   await Workmanager().initialize(
     callbackDispatcher,
       isInDebugMode: true,
@@ -100,6 +100,7 @@ void main() async {
       '/accounts': (context) => const AccountsPage(),
       '/ledger': (context) => const LedgerPage(),
       '/categories': (context) => const CategoryPage(),
+      '/expensePieChart': (context) => const ExpensePieChartPage(),
      // '/accountLedger': (context) => const AccountLedgerPage(),
     },
     /*theme: ThemeData(

@@ -30,8 +30,7 @@ class AccountSummaryPage extends StatelessWidget {
     )
         .toList();
 
-    double balance = account.openingBalance;
-
+    double balance = 0;
     for (var tx in transactions) {
 
       if (tx.accountId != account.key.toString()) {

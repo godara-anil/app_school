@@ -75,7 +75,6 @@ class _AccountLedgerPageState
           TransactionService.getAccountBalance(
             openingBalance:
             account.openingBalance,
-
             transactions: transactions,
           );
 

@@ -3,7 +3,11 @@ import '../model/Expenses.dart';
 
 class AddSessionDialog extends StatefulWidget {
   final Sessions? sessions;
-  final Function(bool isActive, String session) onClickDone;
+  final Function(
+      bool isActive,
+      String session,
+      bool carryForward,
+      ) onClickDone;
 
   const AddSessionDialog({
     Key? key,
@@ -16,6 +20,7 @@ class AddSessionDialog extends StatefulWidget {
 }
 
 class _AddSessionDialogState extends State<AddSessionDialog> {
+  bool carryForward = true;
   final formKey = GlobalKey<FormState>();
   final sessionController = TextEditingController();
   bool isActive = false;
@@ -47,6 +52,23 @@ class _AddSessionDialogState extends State<AddSessionDialog> {
             children: <Widget>[
               SizedBox(height: 8),
               buildName(),
+              SizedBox(height: 8),
+              CheckboxListTile(
+                title: const Text(
+                  "Carry Forward Account Balances",
+                ),
+
+                value: carryForward,
+
+                onChanged: (value) {
+
+                  setState(() {
+
+                    carryForward =
+                        value ?? true;
+                  });
+                },
+              ),
             ],
           ),
         ),
@@ -82,7 +104,7 @@ class _AddSessionDialogState extends State<AddSessionDialog> {
         if (isValid) {
           final name = sessionController.text;
 
-          widget.onClickDone(isActive, name);
+          widget.onClickDone(isActive, name, carryForward);
 
           Navigator.of(context).pop();
         }

@@ -5,6 +5,7 @@ import 'package:app_school/model/Expenses.dart';
 
 import 'package:app_school/services/account_service.dart';
 import 'package:app_school/services/report_service.dart';
+import 'package:intl/intl.dart';
 
 class AccountReportPage
     extends StatelessWidget {
@@ -160,8 +161,7 @@ class AccountReportPage
   }
 }
 
-class AccountLedgerPage
-    extends StatelessWidget {
+class AccountLedgerPage extends StatefulWidget {
 
   final Account account;
 
@@ -171,48 +171,152 @@ class AccountLedgerPage
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  State<AccountLedgerPage> createState() =>
+      _AccountLedgerPageState();
+}
 
+class _AccountLedgerPageState
+    extends State<AccountLedgerPage> {
+
+  DateTimeRange? selectedRange;
+  String searchText = '';
+
+  @override
+  Widget build(BuildContext context) {
     final transactions =
-    AccountService
-        .getAccountTransactions(
-      account.key.toString(),
+    AccountService.getAccountTransactions(
+      widget.account.key.toString(),
     );
+    final filteredTransactions =
+    (selectedRange == null
+        ? transactions
+        : transactions.where((tx) {
+
+      final txDate = DateTime(
+        tx.date.year,
+        tx.date.month,
+        tx.date.day,
+      );
+
+      return !txDate.isBefore(
+        selectedRange!.start,
+      ) &&
+          !txDate.isAfter(
+            selectedRange!.end,
+          );
+
+    }).toList())
+
+        .where((tx) {
+
+      if (searchText.isEmpty) {
+        return true;
+      }
+
+      final search =
+      searchText.toLowerCase();
+
+      return
+
+        tx.category
+            .toLowerCase()
+            .contains(search)
+
+            ||
+
+            (tx.remarks ?? '')
+                .toLowerCase()
+                .contains(search)
+
+            ||
+
+            tx.amount
+                .toString()
+                .contains(search);
+
+    }).toList();
 
     final totalIncome =
-    ReportService
-        .getTotalIncome(
-      transactions,
+    ReportService.getTotalIncome(
+      filteredTransactions,
     );
 
     final totalExpense =
-    ReportService
-        .getTotalExpense(
-      transactions,
+    ReportService.getTotalExpense(
+      filteredTransactions,
+    );
+    final transferBalance =
+    ReportService.getTransferBalance(
+      filteredTransactions,
     );
 
     final balance =
-    AccountService
-        .getAccountBalance(
-      account,
+        widget.account.openingBalance +  totalIncome + transferBalance -  totalExpense;
+    final openingBalance =
+    transactions
+        .where(
+          (t) =>
+      t.category ==
+          "Opening Balance",
+    )
+        .fold<double>(
+      0,
+          (sum, tx) =>
+      tx.isExpense
+          ? sum - tx.amount
+          : sum + tx.amount,
     );
+    final netBalance = totalIncome  - openingBalance;
+
+
 
     return Scaffold(
-
       appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-        title: Text(
-          account.name,
+            Text(widget.account.name),
+
+            Text(
+              selectedRange == null
+                  ? "01 Apr ${DateTime.now().year} → Today"
+                  : "${DateFormat('d MMM yyyy').format(selectedRange!.start)} → ${DateFormat('d MMM yyyy').format(selectedRange!.end)}",
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
         ),
 
-        backgroundColor:
-        Colors.green,
+        backgroundColor: Colors.green,
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.date_range),
+            onPressed: () async {
+
+              final range =
+              await showDateRangePicker(
+                context: context,
+                firstDate: DateTime(2020),
+                lastDate: DateTime.now(),
+              );
+
+              if (range != null) {
+                setState(() {
+                  selectedRange = range;
+                });
+              }
+            },
+          ),
+        ],
       ),
 
       body: Column(
 
         children: [
-
           Container(
 
             padding:
@@ -234,18 +338,14 @@ class AccountLedgerPage
 
                   "Opening Balance",
 
-                  account
-                      .openingBalance
-                      .toStringAsFixed(
-                    0,
-                  ),
+                    openingBalance.toStringAsFixed(0)
                 ),
 
                 buildSummaryRow(
 
                   "Total Income",
 
-                  totalIncome
+                  netBalance
                       .toStringAsFixed(
                     0,
                   ),
@@ -260,7 +360,13 @@ class AccountLedgerPage
                     0,
                   ),
                 ),
+                buildSummaryRow(
 
+                  "Net Transfer",
+                  transferBalance >= 0
+                      ? "+${transferBalance.toStringAsFixed(0)}"
+                      : transferBalance.toStringAsFixed(0),
+                ),
                 const Divider(),
 
                 buildSummaryRow(
@@ -277,11 +383,46 @@ class AccountLedgerPage
               ],
             ),
           ),
+          Padding(
+            padding:
+            const EdgeInsets.all(12),
 
+            child: TextField(
+
+              decoration:
+              InputDecoration(
+
+                hintText:
+                'Search transactions',
+
+                prefixIcon:
+                const Icon(
+                  Icons.search,
+                ),
+
+                border:
+                OutlineInputBorder(
+
+                  borderRadius:
+                  BorderRadius.circular(
+                    12,
+                  ),
+                ),
+              ),
+
+              onChanged: (value) {
+
+                setState(() {
+
+                  searchText = value;
+                });
+              },
+            ),
+          ),
           Expanded(
 
             child:
-            transactions.isEmpty
+            filteredTransactions.isEmpty
 
                 ? const Center(
               child: Text(
@@ -292,13 +433,15 @@ class AccountLedgerPage
                 : ListView.builder(
 
               itemCount:
-              transactions.length,
+              filteredTransactions
+                  .length,
 
               itemBuilder:
                   (context, index) {
 
                 final tx =
-                transactions[index];
+                filteredTransactions[
+                index];
 
                 return Card(
 
@@ -312,7 +455,8 @@ class AccountLedgerPage
 
                   child: ListTile(
 
-                    leading: CircleAvatar(
+                    leading:
+                    CircleAvatar(
 
                       backgroundColor:
                       tx.isExpense
@@ -400,7 +544,6 @@ class AccountLedgerPage
       String value, {
         bool isBold = false,
       }) {
-
     return Padding(
 
       padding:
@@ -452,4 +595,5 @@ class AccountLedgerPage
       ),
     );
   }
+
 }

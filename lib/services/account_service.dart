@@ -1,20 +1,38 @@
 import 'package:app_school/model/Expenses.dart';
 import 'package:app_school/boxes.dart';
+import 'package:app_school/services/session_service.dart';
 
 
 class AccountService {
 
-  static double getAccountBalance(Account account) {
+  static double getAccountBalance(Account account,) {
 
-    final transactions = Boxes.getTransactions().values
-        .where((e) => e.accountId == account.key.toString());
+    final activeSessionKey =
+    SessionService
+        .getActiveSessionKey();
 
-    double balance = account.openingBalance;
+    final transactions =
+    Boxes.getTransactions()
+        .values
+        .where(
+          (e) =>
+      e.accountId ==
+          account.key.toString() &&
+
+          e.sessionKey ==
+              activeSessionKey,
+    );
+
+    double balance = 0;
 
     for (var t in transactions) {
+
       if (t.isExpense) {
+
         balance -= t.amount;
+
       } else {
+
         balance += t.amount;
       }
     }
@@ -92,14 +110,21 @@ class AccountService {
     return total;
   }
 
-  static List<Expenses>  getAccountTransactions(String accountId,) {
+  static List<Expenses> getAccountTransactions(String accountId,) {
+
+    final activeSessionKey =
+    SessionService
+        .getActiveSessionKey();
 
     return Boxes.getTransactions()
         .values
         .where(
           (e) =>
       e.accountId ==
-          accountId,
+          accountId &&
+
+          e.sessionKey ==
+              activeSessionKey,
     )
         .toList()
         .cast<Expenses>();

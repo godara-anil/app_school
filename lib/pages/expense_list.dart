@@ -158,16 +158,13 @@ class _ExpensesPageState extends State<ExpensesPage> {
           TransactionService
               .getTransactionsBySession(
               currentSessionKey)
-
               .where(
                 (tx) =>
             tx.isExpense == isExpense,
           )
-
               .where(
-                (tx) => tx.date.isAfter(startDate),
+                (tx) => tx.date.isAfter(startDate)
           )
-
               .where(
                 (tx) => tx.date.isBefore(endDate),
           )
@@ -187,15 +184,19 @@ class _ExpensesPageState extends State<ExpensesPage> {
     );
   }
   Widget buildContent(List<Expenses> transactions) {
-    if (transactions.isEmpty) {
+    final newTransactions =  transactions.where(
+          (tx) => !TransactionService.isTransfer(tx)
+    ).toList();
+    if (newTransactions.isEmpty) {
       return Center(
         child: Text(
           'No Transactions yet!',
           style: TextStyle(fontSize: 24),
         ),
       );
-    } else {
-      final netExpense = transactions.fold<double>(
+    }
+    else {
+      final netExpense = newTransactions.fold<double>(
         0,
             (previousValue, transaction) => previousValue + transaction.amount,
       );
@@ -217,10 +218,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(8),
-              itemCount: transactions.length,
+              itemCount: newTransactions.length,
               itemBuilder: (BuildContext context, int index) {
-                final transaction = transactions[index];
-
+                final transaction = newTransactions[index];
                 return TransactionTile(
                   transaction: transaction,
                   children: buildButtons(

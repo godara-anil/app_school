@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'package:app_school/boxes.dart';
 import 'package:app_school/model/Expenses.dart';
 import 'package:app_school/services/transaction_service.dart';
+import 'package:app_school/services/session_service.dart';
+import 'package:app_school/widget/transfer_dialog.dart';
+
+
 
 class AccountsPage extends StatefulWidget {
   const AccountsPage({Key? key}) : super(key: key);
@@ -60,6 +63,27 @@ class _AccountsPageState
 
         backgroundColor:
         Colors.green,
+
+        actions: [
+
+          IconButton(
+
+            icon: const Icon(
+              Icons.swap_horiz,
+            ),
+
+            onPressed: () {
+
+              showDialog(
+
+                context: context,
+
+                builder: (_) =>
+                const TransferDialog(),
+              );
+            },
+          ),
+        ],
       ),
 
       floatingActionButton:
@@ -78,237 +102,249 @@ class _AccountsPageState
         },
       ),
 
-      body: ValueListenableBuilder(
-
+      body:
+      ValueListenableBuilder(
         valueListenable:
         AccountsBox
             .getAccounts()
             .listenable(),
-
         builder:
             (context, box, _) {
+              return ValueListenableBuilder(
 
-          final accounts =
-          box.values
-              .toList()
-              .cast<Account>();
+                valueListenable:
+                Boxes.getTransactions()
+                    .listenable(),
+                builder: (
+                    context,
+                    transactionBox,
+                    __,
+                    ) {
+                  final accounts =
+                  box.values
+                      .toList()
+                      .cast<Account>();
+                  if (accounts.isEmpty) {
+                    return const Center(
 
-          if (accounts.isEmpty) {
+                      child: Text(
 
-            return const Center(
-
-              child: Text(
-
-                'No Accounts Added',
-
-                style: TextStyle(
-                  fontSize: 18,
-                ),
-              ),
-            );
-          }
-
-          return ListView.builder(
-
-            itemCount:
-            accounts.length,
-
-            itemBuilder:
-                (context, index) {
-
-              final account =
-              accounts[index];
-
-              final balance =
-              getAccountBalance(
-                account.key.toString(),
-              );
-
-              return Card(
-
-                margin:
-                const EdgeInsets.symmetric(
-
-                  horizontal: 12,
-
-                  vertical: 6,
-                ),
-
-                child: ListTile(
-
-                  leading:
-                  CircleAvatar(
-
-                    backgroundColor:
-                    account.type
-                        .toLowerCase() ==
-                        "cash"
-
-                        ? Colors.green
-
-                        : Colors.blue,
-
-                    child: Text(
-
-                      account.name[0]
-                          .toUpperCase(),
-
-                      style:
-                      const TextStyle(
-                        color:
-                        Colors.white,
-                      ),
-                    ),
-                  ),
-
-                  title: Text(
-
-                    account.name,
-
-                    style:
-                    const TextStyle(
-
-                      fontWeight:
-                      FontWeight.bold,
-                    ),
-                  ),
-
-                  subtitle: Column(
-
-                    crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
-
-                    children: [
-
-                      Text(
-                        account.type
-                            .toUpperCase(),
-                      ),
-
-                      Text(
-
-                        account.isActive
-
-                            ? "Active"
-
-                            : "Inactive",
+                        'No Accounts Added',
 
                         style: TextStyle(
-
-                          color:
-                          account.isActive
-
-                              ? Colors.green
-
-                              : Colors.red,
+                          fontSize: 18,
                         ),
                       ),
-                    ],
-                  ),
-
-                  trailing: Text(
-
-                    balance
-                        .toStringAsFixed(
-                      0,
-                    ),
-
-                    style:
-                    TextStyle(
-
-                      fontSize: 18,
-
-                      fontWeight:
-                      FontWeight.bold,
-
-                      color:
-                      balance >= 0
-
-                          ? Colors.green
-
-                          : Colors.red,
-                    ),
-                  ),
-
-                  onTap: () {
-
-                    showAccountDialog(
-                      account: account,
                     );
-                  },
+                  }
+                  return ListView.builder(
 
-                  onLongPress: () async {
+                    itemCount:
+                    accounts.length,
 
-                    final confirm =
-                    await showDialog<bool>(
+                    itemBuilder:
+                        (context, index) {
+                      final account =
+                      accounts[index];
 
-                      context: context,
+                      final balance =
+                      getAccountBalance(
+                        account.key.toString(),
+                      );
 
-                      builder:
-                          (context) {
+                      return Card(
 
-                        return AlertDialog(
+                        margin:
+                        const EdgeInsets.symmetric(
 
-                          title: const Text(
-                            "Delete Account",
-                          ),
+                          horizontal: 12,
 
-                          content:
-                          const Text(
+                          vertical: 6,
+                        ),
 
-                            "Are you sure you want to delete this account?",
-                          ),
+                        child: ListTile(
 
-                          actions: [
+                          leading:
+                          CircleAvatar(
 
-                            TextButton(
+                            backgroundColor:
+                            account.type
+                                .toLowerCase() ==
+                                "cash"
 
-                              onPressed: () {
+                                ? Colors.green
 
-                                Navigator.pop(
-                                  context,
-                                  false,
-                                );
-                              },
+                                : Colors.blue,
 
-                              child:
-                              const Text(
-                                "Cancel",
+                            child: Text(
+
+                              account.name[0]
+                                  .toUpperCase(),
+
+                              style:
+                              const TextStyle(
+                                color:
+                                Colors.white,
                               ),
                             ),
+                          ),
 
-                            TextButton(
+                          title: Text(
 
-                              onPressed: () {
+                            account.name,
 
-                                Navigator.pop(
-                                  context,
-                                  true,
+                            style:
+                            const TextStyle(
+
+                              fontWeight:
+                              FontWeight.bold,
+                            ),
+                          ),
+
+                          subtitle: Column(
+
+                            crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
+
+                            children: [
+
+                              Text(
+                                account.type
+                                    .toUpperCase(),
+                              ),
+
+                              Text(
+
+                                account.isActive
+
+                                    ? "Active"
+
+                                    : "Inactive",
+
+                                style: TextStyle(
+
+                                  color:
+                                  account.isActive
+
+                                      ? Colors.green
+
+                                      : Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          trailing: Text(
+
+                            balance
+                                .toStringAsFixed(
+                              0,
+                            ),
+
+                            style:
+                            TextStyle(
+
+                              fontSize: 18,
+
+                              fontWeight:
+                              FontWeight.bold,
+
+                              color:
+                              balance >= 0
+
+                                  ? Colors.green
+
+                                  : Colors.red,
+                            ),
+                          ),
+
+                          onTap: () {
+                            showAccountDialog(
+                              account: account,
+                            );
+                          },
+                          onLongPress: () async {
+                            final confirm =
+                            await showDialog<bool>(
+                              context: context,
+                              builder:
+                                  (context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    "Delete Account",
+                                  ),
+                                  content:
+                                  const Text(
+                                    "Are you sure you want to delete this account?",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(
+                                          context,
+                                          false,
+                                        );
+                                      },
+                                      child:
+                                      const Text(
+                                        "Cancel",
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(
+                                          context,
+                                          true,
+                                        );
+                                      },
+                                      child:
+                                      const Text(
+                                        "Delete",
+                                      ),
+                                    ),
+                                  ],
                                 );
                               },
-
-                              child:
-                              const Text(
-                                "Delete",
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-
-                    if (confirm ==
-                        true) {
-
-                      await account
-                          .delete();
-                    }
-                  },
-                ),
+                            );
+                            if (confirm == true) {
+                              final hasTransactions =
+                              Boxes
+                                  .getTransactions()
+                                  .values
+                                  .any((tx) =>
+                              tx.accountId == account.key.toString(),);
+                              if (hasTransactions) {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) =>
+                                      AlertDialog(
+                                        title: const Text(
+                                          "Cannot Delete Account",
+                                        ),
+                                        content: const Text(
+                                          "This account contains transactions.",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text("OK"),
+                                          ),
+                                        ],
+                                      ),
+                                );
+                                return;
+                                await account.delete();
+                              }
+                            };
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               );
-            },
-          );
         },
       ),
     );
@@ -524,27 +560,41 @@ class _AccountsPageState
                     name: name,
 
                     openingBalance:
-                    openingBalance,
+                    0,
 
                     type:
                     selectedType,
                   );
-
                   await AccountsBox
                       .getAccounts()
                       .add(newAccount);
+                  await SessionService
+                      .ensureOpeningBalanceCategory();
+
+                  if(openingBalance != 0){
+                    final tx = Expenses()
+                      ..amount = openingBalance
+                      ..isExpense = false
+                      ..date = DateTime.now()
+                      ..category = "Opening Balance"
+                      ..sessionKey =
+                      SessionService.getActiveSessionKey()
+                      ..accountId =
+                      newAccount.key.toString()
+                      ..remarks =
+                          "Opening Balance";
+                    await Boxes
+                        .getTransactions()
+                        .add(tx);
+                  }
                 }
                 else {
-
                   account.name =
                       name;
-
                   account.openingBalance =
-                      openingBalance;
-
+                      0;
                   account.type =
                       selectedType;
-
                   await account
                       .save();
                 }
@@ -569,20 +619,25 @@ class _AccountsPageState
       String accountId,
       ) {
 
+    final activeSessionKey =
+    SessionService
+        .getActiveSessionKey();
+
     final transactions =
     Boxes.getTransactions()
         .values
         .where(
           (e) =>
       e.accountId ==
-          accountId,
+          accountId &&
+          e.sessionKey ==
+              activeSessionKey,
     )
         .toList();
 
     double balance = 0;
 
-    for (final tx
-    in transactions) {
+    for (final tx in transactions) {
 
       if (tx.isExpense) {
 
@@ -604,8 +659,7 @@ class _AccountsPageState
           accountId,
     );
 
-    balance +=
-        account.openingBalance;
+    // balance += account.openingBalance;
 
     return balance;
   }

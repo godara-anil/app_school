@@ -2,7 +2,6 @@ import 'package:app_school/boxes.dart';
 import 'package:app_school/model/Expenses.dart';
 
 class TransactionService {
-
   // ADD TRANSACTION
   static Future<void> addTransaction({
     required double amount,
@@ -58,9 +57,7 @@ class TransactionService {
   }
 
   // GET SESSION TRANSACTIONS
-  static List<Expenses> getSessionTransactions(
-      int sessionKey,
-      ) {
+  static List<Expenses> getSessionTransactions(int sessionKey,) {
 
     final transactions =
     Boxes.getTransactions()
@@ -108,7 +105,7 @@ class TransactionService {
       ) {
 
     return getSessionTransactions(sessionKey)
-        .where((tx) => !tx.isExpense)
+        .where((tx) => !tx.isExpense && isTransfer(tx))
         .toList();
   }
 
@@ -118,7 +115,7 @@ class TransactionService {
       ) {
 
     return getSessionTransactions(sessionKey)
-        .where((tx) => tx.isExpense)
+        .where((tx) => tx.isExpense && isTransfer(tx))
         .toList();
   }
 
@@ -126,10 +123,11 @@ class TransactionService {
       List<Expenses> transactions,
       ) {
 
-    return transactions.fold<double>(
-      0,
+    return transactions.fold<double>( 0,
           (previousValue, transaction) {
-
+        if (isTransfer(transaction)) {
+          return previousValue;
+        }
         if (transaction.isExpense) {
           return previousValue - transaction.amount;
         }
@@ -147,7 +145,7 @@ class TransactionService {
       0,
           (previousValue, transaction) {
 
-        if (!transaction.isExpense) {
+        if (!transaction.isExpense && !isTransfer(transaction)) {
           return previousValue + transaction.amount;
         }
 
@@ -164,7 +162,7 @@ class TransactionService {
       0,
           (previousValue, transaction) {
 
-        if (transaction.isExpense) {
+        if (transaction.isExpense && !isTransfer(transaction)) {
           return previousValue + transaction.amount;
         }
 
@@ -173,9 +171,7 @@ class TransactionService {
     );
   }
 
-  static double getCashBalance(
-      List<Expenses> transactions,
-      ) {
+  static double getCashBalance(List<Expenses> transactions,) {
 
     double cashBalance = 0;
 
@@ -266,5 +262,66 @@ class TransactionService {
     }
 
     return balance;
+  }
+
+  // TRANSFER BETWEEN ACCOUNTS
+  static Future<void> transferTransaction({
+    required double amount,
+    required DateTime date,
+    required int sessionKey,
+    required String fromAccountId,
+    required String toAccountId,
+    String? remarks,
+  }) async {
+
+    // Money leaving source account
+    final expense = Expenses()
+      ..amount = amount
+      ..category = "Transfer"
+      ..isExpense = true
+      ..date = date
+      ..sessionKey = sessionKey
+      ..accountId = fromAccountId
+      ..remarks = remarks;
+
+    // Money entering destination account
+    final income = Expenses()
+      ..amount = amount
+      ..category = "Transfer"
+      ..isExpense = false
+      ..date = date
+      ..sessionKey = sessionKey
+      ..accountId = toAccountId
+      ..remarks = remarks;
+
+    await Boxes.getTransactions().add(expense);
+    await Boxes.getTransactions().add(income);
+  }
+
+  static bool isTransfer(
+      Expenses tx,
+      ) {
+    return tx.category == "Transfer";
+  }
+
+  static double getNetTransferBalance(
+      List<Expenses> transactions,
+      ) {
+    double transferBalance = 0;
+
+    for (final tx in transactions) {
+
+      if (tx.category != "Transfer") {
+        continue;
+      }
+
+      if (tx.isExpense) {
+        transferBalance -= tx.amount;
+      } else {
+        transferBalance += tx.amount;
+      }
+    }
+
+    return transferBalance;
   }
 }

@@ -22,9 +22,15 @@ class ReportService {
   static double getNetBalance(
       List<Expenses> transactions,
       ) {
-
     return TransactionService
         .getNetBalance(transactions);
+  }
+
+  static double getTransferBalance(
+      List<Expenses> transactions,
+      ) {
+   return  TransactionService
+        .getNetTransferBalance(transactions);
   }
 
   static Map<String, double>
@@ -36,7 +42,7 @@ class ReportService {
 
     for (var tx in transactions) {
 
-      if (!tx.isExpense) continue;
+      if (!tx.isExpense || TransactionService.isTransfer(tx)) continue;
 
       if (data.containsKey(tx.category)) {
 
@@ -63,7 +69,7 @@ class ReportService {
 
     for (var tx in transactions) {
 
-      if (tx.isExpense) continue;
+      if (tx.isExpense || TransactionService.isTransfer(tx)) continue;
 
       if (data.containsKey(tx.category)) {
 
@@ -89,7 +95,7 @@ class ReportService {
     monthlyData = {};
 
     for (var tx in transactions) {
-
+      if (TransactionService.isTransfer(tx))  continue;
       final monthKey =
           "${tx.date.year}-${tx.date.month}";
 

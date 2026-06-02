@@ -12,19 +12,15 @@ class dashboard extends StatefulWidget {
   State<dashboard> createState() => _dashboardState();
 }
 class _dashboardState extends State<dashboard> {
-  int currentSessionKey = 0;
+ // int currentSessionKey = 0;
   @override
-  void initState() {
+  /*void initState() {
     super.initState();
-
     currentSessionKey =
         SessionService.getActiveSessionKey();
-  }
-
-
+  }*/
   @override
   Widget build(BuildContext context) {
-
       return Scaffold(
         appBar: AppBar(
           title: Text('Dashboard'),
@@ -266,7 +262,9 @@ class _dashboardState extends State<dashboard> {
           category: category,
           isExpense: isExpense,
           date: date,
-          sessionKey: currentSessionKey,
+          sessionKey: SessionService
+              .activeSessionNotifier
+              .value,
           accountId: accountId,
           remarks: remarks,
           );
@@ -279,13 +277,41 @@ class _dashboardState extends State<dashboard> {
           child: const Icon(Icons.add),
 
         ),
-        body: ValueListenableBuilder<Box<Expenses>>(
-          valueListenable: Boxes.getTransactions().listenable(),
-          builder: (context, box, _) {
-            final transactions =
-            TransactionService.getTransactionsBySession(
-                currentSessionKey);
-            return buildContent(transactions);
+        body: ValueListenableBuilder<int>(
+
+          valueListenable:
+          SessionService
+              .activeSessionNotifier,
+
+          builder: (
+              context,
+              sessionKey,
+              _,
+              ) {
+
+            return ValueListenableBuilder(
+
+              valueListenable:
+              Boxes.getTransactions()
+                  .listenable(),
+
+              builder: (
+                  context,
+                  box,
+                  _,
+                  ) {
+
+                final transactions =
+                TransactionService
+                    .getTransactionsBySession(
+                  sessionKey,
+                );
+
+                return buildContent(
+                  transactions,
+                );
+              },
+            );
           },
         ),
       );
@@ -310,6 +336,9 @@ class _dashboardState extends State<dashboard> {
       final netIncome = TransactionService.getNetIncome(transactions);
       final newExpenseString = '${netExpense.toStringAsFixed(0)}';
       final newIncomeString = '${netIncome.toStringAsFixed(0)}';
+      final latestTransactions = transactions.where(
+            (tx) => tx.category != "Transfer",
+      ).toList();
       return Column(
         children: [
           SizedBox(height: 24),
@@ -500,18 +529,19 @@ class _dashboardState extends State<dashboard> {
               "Latest Transactions",
           style: TextStyle(fontSize:20, fontWeight: FontWeight.bold),
           ),
+
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(8),
               itemCount:
-              transactions.length > 5
+              latestTransactions.length > 5
                   ? 5
-                  : transactions.length,
+                  : latestTransactions.length,
               itemBuilder: (BuildContext context, int index) {
-                final transaction = transactions[index];
+                final transaction = latestTransactions[index];
                 return  TransactionTile(
                   transaction: transaction,
-                );;
+                );
               },
             ),
           ),
@@ -613,7 +643,7 @@ class _dashboardState extends State<dashboard> {
 
     double total = 0;
     for (var tx in transactions) {
-      if (isToday(tx.date) && !tx.isExpense) {
+      if (isToday(tx.date) && !tx.isExpense && tx.category != "Transfer") {
         total += tx.amount;
       }
     }
@@ -623,7 +653,7 @@ class _dashboardState extends State<dashboard> {
 
     double total = 0;
     for (var tx in transactions) {
-      if (isToday(tx.date) && tx.isExpense) {
+      if (isToday(tx.date) && tx.isExpense && tx.category != "Transfer") {
         total += tx.amount;
       }
     }
