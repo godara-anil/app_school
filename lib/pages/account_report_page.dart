@@ -5,6 +5,8 @@ import 'package:app_school/model/Expenses.dart';
 
 import 'package:app_school/services/account_service.dart';
 import 'package:app_school/services/report_service.dart';
+import 'package:app_school/services/pdf_service.dart';
+import 'package:app_school/services/session_service.dart';
 import 'package:intl/intl.dart';
 
 class AccountReportPage
@@ -311,6 +313,19 @@ class _AccountLedgerPageState
               }
             },
           ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'pdf') {
+                exportPdf();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'pdf',
+                child: Text('Export PDF'),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -595,5 +610,113 @@ class _AccountLedgerPageState
       ),
     );
   }
+  Future<void> exportPdf() async {
+
+    final transactions =
+    AccountService.getAccountTransactions(
+      widget.account.key.toString(),
+    );
+    final filteredTransactions =
+    (selectedRange == null
+        ? transactions
+        : transactions.where((tx) {
+
+      final txDate = DateTime(
+        tx.date.year,
+        tx.date.month,
+        tx.date.day,
+      );
+
+      return !txDate.isBefore(
+        selectedRange!.start,
+      ) &&
+          !txDate.isAfter(
+            selectedRange!.end,
+          );
+
+    }).toList())
+
+        .where((tx) {
+
+      if (searchText.isEmpty) {
+        return true;
+      }
+
+      final search =
+      searchText.toLowerCase();
+
+      return
+
+        tx.category
+            .toLowerCase()
+            .contains(search)
+
+            ||
+
+            (tx.remarks ?? '')
+                .toLowerCase()
+                .contains(search)
+
+            ||
+
+            tx.amount
+                .toString()
+                .contains(search);
+
+    }).toList();
+    final totalIncome =
+    ReportService.getTotalIncome(
+      filteredTransactions,
+    );
+
+    final totalExpense =
+    ReportService.getTotalExpense(
+      filteredTransactions,
+    );
+
+    final transferBalance =
+    ReportService.getTransferBalance(
+      filteredTransactions,
+    );
+
+    final balance =
+    AccountService.getAccountBalance(
+      widget.account,
+    );
+    final openingBalance =
+    transactions
+        .where(
+          (t) =>
+      t.category ==
+          "Opening Balance",
+    )
+        .fold<double>(
+      0,
+          (sum, tx) =>
+      tx.isExpense
+          ? sum - tx.amount
+          : sum + tx.amount,
+    );
+    await PdfService.exportAccountLedger(
+
+      accountName: widget.account.name,
+
+      sessionName:
+      SessionService.getActiveSession().session,
+
+      openingBalance: openingBalance,
+
+      totalIncome: totalIncome - openingBalance,
+
+      totalExpense: totalExpense,
+
+      transferBalance: transferBalance,
+
+      currentBalance: balance,
+
+      transactions: transactions,
+    );
+  }
+
 
 }

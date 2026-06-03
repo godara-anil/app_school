@@ -265,6 +265,16 @@ class _AccountsPageState
                             );
                           },
                           onLongPress: () async {
+                            if (SessionService.getActiveSessionLockStatus()) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    SessionService.lockedMessage,
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
                             final confirm =
                             await showDialog<bool>(
                               context: context,
@@ -536,7 +546,16 @@ class _AccountsPageState
             ElevatedButton(
 
               onPressed: () async {
-
+                if (SessionService.getActiveSessionLockStatus()) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        SessionService.lockedMessage,
+                      ),
+                    ),
+                  );
+                  return;
+                }
                 final name =
                 nameController.text
                     .trim();

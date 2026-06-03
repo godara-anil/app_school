@@ -50,6 +50,8 @@ dependencies:
 
   workmanager: ^0.7.0
   fl_chart: ^0.68.0
+  pdf: ^3.11.0
+  printing: ^5.13.4
 
 
 

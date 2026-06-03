@@ -46,6 +46,7 @@ class _AccountLedgerPageState
       appBar: AppBar(
         title: const Text("Account Ledger"),
         backgroundColor: Colors.green,
+
       ),
 
       body: ValueListenableBuilder(

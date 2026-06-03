@@ -42,6 +42,7 @@ class _AddSessionDialogState extends State<AddSessionDialog> {
   Widget build(BuildContext context) {
     final isEditing = widget.sessions != null;
     final title = isEditing ? 'Edit Session' : 'Add Session';
+    final uncheckCF = isEditing ? false : carryForward;
     return AlertDialog(
       title: Text(title),
       content: Form(
@@ -58,7 +59,7 @@ class _AddSessionDialogState extends State<AddSessionDialog> {
                   "Carry Forward Account Balances",
                 ),
 
-                value: carryForward,
+                value: uncheckCF,
 
                 onChanged: (value) {
 

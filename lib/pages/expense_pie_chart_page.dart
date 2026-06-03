@@ -7,6 +7,8 @@ import 'package:app_school/boxes.dart';
 import 'package:app_school/model/Expenses.dart';
 
 import 'package:app_school/services/report_service.dart';
+import 'package:app_school/services/session_service.dart';
+import 'package:app_school/services/transaction_service.dart';
 
 class ExpensePieChartPage extends StatefulWidget {
 
@@ -29,18 +31,13 @@ class _ExpensePieChartPageState
   Widget build(BuildContext context) {
 
     final allTransactions =
-    Boxes.getTransactions()
-        .values
-        .toList()
-        .cast<Expenses>();
+    TransactionService.getSessionTransactions(SessionService.getActiveSessionKey());
+
 
     final transactions =
     allTransactions.where((tx) {
-
       return
-
         tx.isExpense &&
-
             tx.date.month ==
                 selectedMonth.month &&
 

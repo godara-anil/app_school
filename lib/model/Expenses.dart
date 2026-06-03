@@ -26,6 +26,8 @@ class Sessions extends HiveObject {
   late bool   isActive = true;
   @HiveField(1)
   late String session;
+  @HiveField(2)
+  late bool   isLocked = false;
 }
 @HiveType(typeId: 2)
 class Account extends HiveObject {

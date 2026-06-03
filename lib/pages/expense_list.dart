@@ -281,6 +281,16 @@ class _ExpensesPageState extends State<ExpensesPage> {
   );
 
   void deleteTransaction(Expenses transaction) async{
+    if (SessionService.getActiveSessionLockStatus()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            SessionService.lockedMessage,
+          ),
+        ),
+      );
+      return;
+    }
     final response = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(

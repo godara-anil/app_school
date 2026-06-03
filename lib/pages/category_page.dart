@@ -3,6 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:app_school/boxes.dart';
 import 'package:app_school/model/category_model.dart';
+import 'package:app_school/services/session_service.dart';
+
 
 class CategoryPage extends StatefulWidget {
 
@@ -28,50 +30,7 @@ class _CategoryPageState
     super.dispose();
   }
 
-  Future<void> addCategory() async {
 
-    final name =
-    categoryController.text.trim();
-
-    if (name.isEmpty) return;
-
-    final alreadyExists =
-    CategoryBox.getCategories()
-        .values
-        .any(
-          (c) =>
-      c.name.toLowerCase() ==
-          name.toLowerCase(),
-    );
-
-    if (alreadyExists) {
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
-        const SnackBar(
-          content:
-          Text("Category already exists"),
-        ),
-      );
-
-      return;
-    }
-
-    final category = Category(
-      name: name,
-      isExpense: true,
-      isActive: true,
-    );
-
-    await CategoryBox
-        .getCategories()
-        .add(category);
-
-    categoryController.clear();
-
-    Navigator.pop(context);
-  }
 
   void showAddDialog() {
 
@@ -183,6 +142,17 @@ class _CategoryPageState
 
                   onPressed: () async {
 
+                    if (SessionService.getActiveSessionLockStatus()) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            SessionService.lockedMessage,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
                     final name =
                     categoryController
                         .text
@@ -254,9 +224,19 @@ class _CategoryPageState
   }
 
   Future<void> toggleCategory(
+
       Category category,
       ) async {
-
+    if (SessionService.getActiveSessionLockStatus()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            SessionService.lockedMessage,
+          ),
+        ),
+      );
+      return;
+    }
     category.isActive =
     !category.isActive;
 
@@ -266,7 +246,16 @@ class _CategoryPageState
   Future<void> deleteCategory(
       Category category,
       ) async {
-
+    if (SessionService.getActiveSessionLockStatus()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            SessionService.lockedMessage,
+          ),
+        ),
+      );
+      return;
+    }
     final response =
     await showDialog<bool>(
 

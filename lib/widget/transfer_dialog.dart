@@ -288,7 +288,16 @@ class _TransferDialogState
     );
   }
   Future<void>  saveTransfer() async {
-
+    if (SessionService.getActiveSessionLockStatus()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            SessionService.lockedMessage,
+          ),
+        ),
+      );
+      return;
+    }
     final amount =
     double.tryParse(
       amountController.text,
@@ -296,34 +305,27 @@ class _TransferDialogState
 
     if (amount == null ||
         amount <= 0) {
-
       showError(
         "Enter valid amount",
       );
-
       return;
     }
 
     if (fromAccount == null ||
         toAccount == null) {
-
       showError(
         "Select accounts",
       );
-
       return;
     }
 
     if (fromAccount!.key ==
         toAccount!.key) {
-
       showError(
         "Accounts must be different",
       );
-
       return;
     }
-
     await TransactionService
         .transferTransaction(
 

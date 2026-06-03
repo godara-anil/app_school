@@ -72,17 +72,20 @@ class SessionsAdapter extends TypeAdapter<Sessions> {
     };
     return Sessions()
       ..isActive = fields[0] as bool
-      ..session = fields[1] as String;
+      ..session = fields[1] as String
+      ..isLocked = fields[2] as bool;
   }
 
   @override
   void write(BinaryWriter writer, Sessions obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.isActive)
       ..writeByte(1)
-      ..write(obj.session);
+      ..write(obj.session)
+      ..writeByte(2)
+      ..write(obj.isLocked);
   }
 
   @override

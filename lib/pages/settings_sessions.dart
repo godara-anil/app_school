@@ -105,10 +105,24 @@ class _Settings_sessionState extends State<Settings_session> {
       color: Colors.white,
       child: ExpansionTile(
         tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        title: Text(
-          session.session,
-          maxLines: 2,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                session.session,
+                maxLines: 2,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+            if (session.isLocked)
+              const Icon(
+                Icons.lock,
+                color: Colors.red,
+              ),
+          ],
         ),
         trailing: buildIcon(session.isActive),
         children: [
@@ -129,25 +143,50 @@ class _Settings_sessionState extends State<Settings_session> {
     children: [
       Expanded(
         child: TextButton.icon(
-          label: Text('Edit'),
-          icon: Icon(Icons.edit),
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(
+          label: const Text(''),
+          icon: const Icon(Icons.edit),
+          onPressed: () {
+
+            if (session.isLocked) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Locked session cannot be edited.',
+                  ),
+                ),
+              );
+              return;
+            }
+            showDialog(
+              context: context,
               builder: (context) => AddSessionDialog(
                 sessions: session,
                 onClickDone: (isActive, name, carryForward) =>
-                SessionService.editSession(session, name, isActive,),
+                    SessionService.editSession(
+                      session,
+                      name,
+                      isActive,
+                    ),
               ),
-            ),
-          ),
+            );
+          },
         ),
-        ),
+      ),
       Expanded(
         child: TextButton.icon(
-          label: Text('Delete'),
+          label: Text(''),
           icon: Icon(Icons.delete,),
           onPressed: () async {
-
+            if (session.isLocked) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    "Locked Session can not be deleted. Unlock to delete",
+                  ),
+                ),
+              );
+              return;
+            }
             final error = await
             SessionService
                 .deleteSession(
@@ -195,6 +234,9 @@ class _Settings_sessionState extends State<Settings_session> {
       ),
       Expanded(
         child: checkActive(session),
+      ),
+      Expanded(
+        child: lockUnlockButton(session),
       )
     ],
   );
@@ -204,11 +246,22 @@ class _Settings_sessionState extends State<Settings_session> {
     }
     else {
       return TextButton.icon(
-        label: Text('Active'),
+        label: Text(''),
         icon: Icon(Icons.check,),
         onPressed: () => makeActive(session),
       );
     }
+  }
+  Widget lockUnlockButton(Sessions session) {
+    return TextButton.icon(
+      icon: Icon(
+        session.isLocked
+            ? Icons.lock_open
+            : Icons.lock,
+      ),
+      label: Text(''),
+      onPressed: () => toggleSessionLock(session),
+    );
   }
   Future<void> makeActive(
       Sessions session,
@@ -218,6 +271,50 @@ class _Settings_sessionState extends State<Settings_session> {
         .setActiveSession(
       session,
     );
+  }
+  Future<void> toggleSessionLock(
+      Sessions session,
+      ) async {
+    final shouldLock = !session.isLocked;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          shouldLock
+              ? 'Lock Session'
+              : 'Unlock Session',
+        ),
+        content: Text(
+          shouldLock
+              ? 'Are you sure you want to lock this session? '
+              'Transactions can no longer be modified.'
+              : 'Are you sure you want to unlock this session?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context, true),
+            child: Text(
+              shouldLock
+                  ? 'Lock'
+                  : 'Unlock',
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) return;
+
+    session.isLocked = shouldLock;
+
+    await session.save();
   }
 }
 

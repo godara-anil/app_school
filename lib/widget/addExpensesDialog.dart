@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:app_school/boxes.dart';
 import 'package:app_school/model/Expenses.dart';
 import 'package:app_school/model/category_model.dart';
+import 'package:app_school/services/session_service.dart';
 
 class AddExpenseDialog extends StatefulWidget {
 
@@ -349,7 +350,6 @@ class _AddExpenseDialogState
 
         keyboardType:
         TextInputType.number,
-
         validator: (amount) {
 
           if (amount == null ||
@@ -357,11 +357,12 @@ class _AddExpenseDialogState
 
             return 'Enter amount';
           }
-
           if (double.tryParse(amount)
               == null) {
-
             return 'Enter valid number';
+          }
+          if ((double.tryParse(amount) ?? 0) <= 0) {
+            return 'Amount must be greater than 0';
           }
 
           return null;
@@ -499,7 +500,16 @@ class _AddExpenseDialogState
       child: Text(text),
 
       onPressed: () async {
-
+        if (SessionService.getActiveSessionLockStatus()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                SessionService.lockedMessage,
+              ),
+            ),
+          );
+          return;
+        }
         final isValid =
         formKey.currentState!.validate();
 

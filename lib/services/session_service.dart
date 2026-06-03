@@ -27,8 +27,8 @@ class SessionService {
 
       final session = Sessions()
         ..session = '2020-21'
-        ..isActive = true;
-
+        ..isActive = true
+        ..isLocked = false;
       Sess.getTransactions().add(session);
 
       return session;
@@ -42,6 +42,16 @@ class SessionService {
 
     return getActiveSession().key;
   }
+
+  // GET ACTIVE SESSSION LOCK STATUS
+  static bool getActiveSessionLockStatus() {
+    return getActiveSession().isLocked;
+  }
+
+  static const String lockedMessage =
+      'Active session is locked. Unlock it to make changes.';
+
+
 
   // GET ALL SESSIONS
   static List<Sessions> getAllSessions() {
@@ -62,7 +72,8 @@ class SessionService {
 
     final session = Sessions()
       ..session = sessionName
-      ..isActive = false;
+      ..isActive = false
+      ..isLocked = false;
 
     await Sess.getTransactions().add(session);
   }

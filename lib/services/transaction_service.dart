@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
+
 import 'package:app_school/boxes.dart';
 import 'package:app_school/model/Expenses.dart';
+
 
 class TransactionService {
   // ADD TRANSACTION
@@ -209,21 +212,16 @@ class TransactionService {
       final account =
       AccountsBox.getAccounts()
           .get(int.tryParse(data.accountId));
-
       if (account == null) continue;
-
       final isCash =
           account.type.toLowerCase() == "cash";
-
       if (isCash) continue;
-
       if (data.isExpense) {
         bankBalance -= data.amount;
       } else {
         bankBalance += data.amount;
       }
     }
-
     return bankBalance;
   }
   static List<Expenses> getTransactionsBySession(
