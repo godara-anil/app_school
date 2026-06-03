@@ -252,26 +252,18 @@ class _AccountLedgerPageState
       filteredTransactions,
     );
 
-    final balance =
-        widget.account.openingBalance +  totalIncome + transferBalance -  totalExpense;
+
     final openingBalance =
-    transactions
-        .where(
-          (t) =>
+    transactions.where((t) =>
       t.category ==
           "Opening Balance",
-    )
-        .fold<double>(
-      0,
-          (sum, tx) =>
+    ).fold<double>(0, (sum, tx) =>
       tx.isExpense
           ? sum - tx.amount
           : sum + tx.amount,
     );
-    final netBalance = totalIncome  - openingBalance;
-
-
-
+    final balance =
+        openingBalance +  totalIncome + transferBalance -  totalExpense;
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -353,31 +345,22 @@ class _AccountLedgerPageState
 
                   "Opening Balance",
 
-                    openingBalance.toStringAsFixed(0)
+                    openingBalance.toStringAsFixed(0),
                 ),
 
-                buildSummaryRow(
-
+                buildSummaryRow (
                   "Total Income",
-
-                  netBalance
-                      .toStringAsFixed(
-                    0,
-                  ),
+                  totalIncome.toStringAsFixed(0),
                 ),
 
                 buildSummaryRow(
-
                   "Total Expense",
-
-                  totalExpense
-                      .toStringAsFixed(
-                    0,
+                  totalExpense.toStringAsFixed(0),
                   ),
-                ),
+
                 buildSummaryRow(
 
-                  "Net Transfer",
+                  "Transfer Balance",
                   transferBalance >= 0
                       ? "+${transferBalance.toStringAsFixed(0)}"
                       : transferBalance.toStringAsFixed(0),

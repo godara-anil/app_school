@@ -143,12 +143,10 @@ class TransactionService {
   static double getNetIncome(
       List<Expenses> transactions,
       ) {
-
     return transactions.fold<double>(
       0,
           (previousValue, transaction) {
-
-        if (!transaction.isExpense && !isTransfer(transaction)) {
+        if (!transaction.isExpense && !isTransfer(transaction) && !isOpeningBalance(transaction)) {
           return previousValue + transaction.amount;
         }
 
@@ -165,7 +163,7 @@ class TransactionService {
       0,
           (previousValue, transaction) {
 
-        if (transaction.isExpense && !isTransfer(transaction)) {
+        if (transaction.isExpense && !isTransfer(transaction) && !isOpeningBalance(transaction)) {
           return previousValue + transaction.amount;
         }
 
@@ -300,6 +298,11 @@ class TransactionService {
       Expenses tx,
       ) {
     return tx.category == "Transfer";
+  }
+  static bool isOpeningBalance(
+      Expenses tx,
+      ) {
+    return tx.category == "Opening Balance";
   }
 
   static double getNetTransferBalance(
