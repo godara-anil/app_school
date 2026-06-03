@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'dart:convert';
 
-
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:app_school/model/Expenses.dart';
-
+import 'package:app_school/model/category_model.dart';
 import 'package:app_school/boxes.dart';
 
 class BackupService {
@@ -27,6 +26,11 @@ class BackupService {
 
       final sessions =
       Sess.getTransactions()
+          .values
+          .toList();
+
+      final categories =
+      CategoryBox.getCategories()
           .values
           .toList();
 
@@ -65,6 +69,22 @@ class BackupService {
 
             "session": s.session,
             "isActive": s.isActive,
+            "isLocked": s.isLocked,
+
+          };
+
+        }).toList(),
+
+        "categories": categories.map((c) {
+
+          return {
+
+            "name": c.name,
+            "isExpense": c.isExpense,
+            "isActive": c.isActive,
+            "createdAt":
+            c.createdAt.toIso8601String(),
+
           };
 
         }).toList(),
@@ -76,6 +96,7 @@ class BackupService {
 
       final directory =
       await getExternalStorageDirectory();
+
       final file = File(
         "${directory!.path}/school_backup.json",
       );
@@ -117,12 +138,16 @@ class BackupService {
       jsonDecode(jsonString);
 
       // CLEAR OLD DATA
+
       await Boxes.getTransactions().flush();
       await AccountsBox.getAccounts().flush();
       await Sess.getTransactions().flush();
+      await CategoryBox.getCategories().flush();
+
       await Boxes.getTransactions().clear();
       await AccountsBox.getAccounts().clear();
       await Sess.getTransactions().clear();
+      await CategoryBox.getCategories().clear();
 
       // RESTORE SESSIONS
 
@@ -131,10 +156,32 @@ class BackupService {
         final session = Sessions()
 
           ..session = s['session']
-          ..isActive = s['isActive'];
+          ..isActive = s['isActive']
+          ..isLocked =
+              s['isLocked'] ?? false;
 
         await Sess.getTransactions()
             .add(session);
+      }
+
+      // RESTORE CATEGORIES
+
+      for (var c in data['categories'] ?? []) {
+
+        final category = Category(
+          name: c['name'],
+          isExpense: c['isExpense'],
+          isActive: c['isActive'] ?? true,
+        );
+
+        category.createdAt =
+            DateTime.parse(
+              c['createdAt'],
+            );
+
+        await CategoryBox
+            .getCategories()
+            .add(category);
       }
 
       // RESTORE ACCOUNTS
@@ -148,7 +195,9 @@ class BackupService {
               .toDouble(),
           type: a['type'],
         );
-        await AccountsBox.getAccounts()
+
+        await AccountsBox
+            .getAccounts()
             .add(account);
       }
 
@@ -163,13 +212,16 @@ class BackupService {
               .toDouble()
           ..category = e['category']
           ..date =
-          DateTime.parse(e['date'])
+          DateTime.parse(
+            e['date'],
+          )
           ..isExpense = e['isExpense']
           ..sessionKey = e['sessionKey']
           ..accountId = e['accountId']
           ..remarks = e['remarks'];
 
-        await Boxes.getTransactions()
+        await Boxes
+            .getTransactions()
             .add(expense);
       }
 
