@@ -267,7 +267,8 @@ class TransactionService {
     required int sessionKey,
     required String fromAccountId,
     required String toAccountId,
-    String? remarks,
+    String? remarks1,
+    String? remarks2,
   }) async {
 
     // Money leaving source account
@@ -278,7 +279,7 @@ class TransactionService {
       ..date = date
       ..sessionKey = sessionKey
       ..accountId = fromAccountId
-      ..remarks = remarks;
+      ..remarks = remarks2;
 
     // Money entering destination account
     final income = Expenses()
@@ -288,7 +289,7 @@ class TransactionService {
       ..date = date
       ..sessionKey = sessionKey
       ..accountId = toAccountId
-      ..remarks = remarks;
+      ..remarks = remarks1;
 
     await Boxes.getTransactions().add(expense);
     await Boxes.getTransactions().add(income);

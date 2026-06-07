@@ -7,6 +7,8 @@ import 'package:app_school/services/account_service.dart';
 import 'package:app_school/services/report_service.dart';
 import 'package:app_school/services/pdf_service.dart';
 import 'package:app_school/services/session_service.dart';
+import 'package:app_school/services/transaction_service.dart';
+import 'package:app_school/widget/addExpensesDialog.dart';
 import 'package:intl/intl.dart';
 
 class AccountReportPage
@@ -208,7 +210,6 @@ class _AccountLedgerPageState
           );
 
     }).toList())
-
         .where((tx) {
 
       if (searchText.isEmpty) {
@@ -237,7 +238,9 @@ class _AccountLedgerPageState
                 .contains(search);
 
     }).toList();
-
+    filteredTransactions.sort(
+          (a, b) => a.date.compareTo(b.date),
+    );
     final totalIncome =
     ReportService.getTotalIncome(
       filteredTransactions,
@@ -264,6 +267,7 @@ class _AccountLedgerPageState
     );
     final balance =
         openingBalance +  totalIncome + transferBalance -  totalExpense;
+    double runningBalance = 0;
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -322,20 +326,13 @@ class _AccountLedgerPageState
       ),
 
       body: Column(
-
         children: [
           Container(
-
             padding:
-            const EdgeInsets.all(
-              16,
-            ),
-
+            const EdgeInsets.all(16,),
             color:
             Colors.green
-                .withOpacity(
-              0.08,
-            ),
+                .withOpacity(0.08,),
 
             child: Column(
 
@@ -420,42 +417,49 @@ class _AccountLedgerPageState
           Expanded(
 
             child:
-            filteredTransactions.isEmpty
-
-                ? const Center(
+            filteredTransactions.isEmpty ? const Center(
               child: Text(
                 "No Transactions",
               ),
             )
-
                 : ListView.builder(
-
               itemCount:
               filteredTransactions
                   .length,
-
               itemBuilder:
                   (context, index) {
+                    double balanceTillHere = 0;
+                    for (int i = 0; i <= index; i++) {
 
-                final tx =
-                filteredTransactions[
-                index];
+                      final txn = filteredTransactions[i];
 
+                      if (txn.category == "Transfer") {
+
+                        if (txn.isExpense) {
+                          balanceTillHere -= txn.amount;
+                        } else {
+                          balanceTillHere += txn.amount;
+                        }
+
+                      } else {
+
+                        if (txn.isExpense) {
+                          balanceTillHere -= txn.amount;
+                        } else {
+                          balanceTillHere += txn.amount;
+                        }
+                      }
+                    }
+                final tx = filteredTransactions[index];
+                    print(tx.remarks);
                 return Card(
-
                   margin:
                   const EdgeInsets.symmetric(
-
                     horizontal: 10,
-
                     vertical: 4,
                   ),
-
                   child: ListTile(
-
-                    leading:
-                    CircleAvatar(
-
+                    leading: CircleAvatar(
                       backgroundColor:
                       tx.isExpense
 
@@ -494,7 +498,6 @@ class _AccountLedgerPageState
                           tx.remarks ??
                               "",
                         ),
-
                         Text(
                           tx.date
                               .toString()
@@ -506,26 +509,110 @@ class _AccountLedgerPageState
                       ],
                     ),
 
-                    trailing: Text(
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
 
-                      tx.amount
-                          .toStringAsFixed(
-                        0,
+                          Text(
+                            tx.amount.toStringAsFixed(0),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: tx.isExpense
+                                  ? Colors.red
+                                  : Colors.green,
+                            ),
+                          ),
+
+                          Text(
+                            "Bal: ${balanceTillHere.toStringAsFixed(0)}",
+                            style: const TextStyle(
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
+                    onTap: () async {
+                      if (tx.category == 'Transfer') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Transfer transactions cannot be edited here.',
+                            ),
+                          ),
+                        );
+                  }
+                      else {
+                        await showDialog(
+                          context: context,
+                          builder: (context) => AddExpenseDialog(
+                            expenses: tx,
+                            onClickDone: (amount, name, isExpense, date, accountId, remarks) =>
+                                TransactionService.updateTransaction(
+                                  expense: tx,
+                                  amount: amount,
+                                  category: name,
+                                  isExpense: isExpense,
+                                  date: date,
+                                  accountId: accountId,
+                                  remarks: remarks,
+                                ),
+                          ),
+                        );
+                      setState(() {});
+                      }
+                    },
+                    onLongPress: () async {
+                      if (tx.category == 'Transfer') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Transfer transactions cannot be deleted here.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text(
+                            'Delete Transaction',
+                          ),
+                          content: Text(
+                            'Delete "${tx.category}" transaction?',
+                          ),
+                          actions: [
 
-                      style: TextStyle(
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(
+                                    context,
+                                    false,
+                                  ),
+                              child: const Text(
+                                'Cancel',
+                              ),
+                            ),
 
-                        fontWeight:
-                        FontWeight.bold,
-
-                        color:
-                        tx.isExpense
-
-                            ? Colors.red
-
-                            : Colors.green,
-                      ),
-                    ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(
+                                    context,
+                                    true,
+                                  ),
+                              child: const Text(
+                                'Delete',
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        await TransactionService
+                            .deleteTransaction(tx);
+                      }
+                    },
                   ),
                 );
               },
@@ -697,7 +784,7 @@ class _AccountLedgerPageState
 
       currentBalance: balance,
 
-      transactions: transactions,
+      transactions: filteredTransactions,
     );
   }
 

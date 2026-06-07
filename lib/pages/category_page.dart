@@ -29,10 +29,7 @@ class _CategoryPageState
 
     super.dispose();
   }
-
-
-
-  void showAddDialog() {
+    void showAddDialog() {
 
     bool categoryIsExpense = true;
 
@@ -350,10 +347,8 @@ class _CategoryPageState
         CategoryBox
             .getCategories()
             .listenable(),
-
         builder:
             (context, box, _) {
-
           final categories =
           box.values
               .toList()

@@ -326,29 +326,16 @@ class _TransferDialogState
       );
       return;
     }
+
     await TransactionService
         .transferTransaction(
-
       amount: amount,
-
       date: date,
-
-      sessionKey:
-      SessionService
-          .getActiveSessionKey(),
-
-      fromAccountId:
-      fromAccount!
-          .key
-          .toString(),
-
-      toAccountId:
-      toAccount!
-          .key
-          .toString(),
-
-      remarks:
-      remarksController.text,
+      sessionKey: SessionService.getActiveSessionKey(),
+      fromAccountId: fromAccount!.key.toString(),
+      toAccountId: toAccount!.key.toString(),
+      remarks1: "Transfer From: ${fromAccount?.name} ${remarksController.text}",
+      remarks2: "Transfer To: ${toAccount?.name} ${remarksController.text}",
     );
 
     if (!mounted) return;

@@ -171,6 +171,13 @@ class _AddExpenseDialogState
         .where((c) => c.isActive)
         .toList()
         .cast<Category>();
+    categories.sort(
+          (a, b) => a.name
+          .toLowerCase()
+          .compareTo(
+        b.name.toLowerCase(),
+      ),
+    );
     return AlertDialog(
       title: Text(
         title,
@@ -237,6 +244,13 @@ class _AddExpenseDialogState
     )
         .toList()
         .cast<Category>();
+    categories.sort(
+          (a, b) => a.name
+          .toLowerCase()
+          .compareTo(
+        b.name.toLowerCase(),
+      ),
+    );
     if (
     selectedCategory != null &&
 

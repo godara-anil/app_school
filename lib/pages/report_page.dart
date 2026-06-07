@@ -100,12 +100,15 @@ class _ReportPageState
 
     double total = 0;
 
-    for (var amount
-    in reportData.values) {
+    for (var amount in reportData.values) {
 
       total += amount;
     }
-
+    final sortedEntries =
+    reportData.entries.toList()
+      ..sort(
+            (a, b) => b.value.compareTo(a.value),
+      );
     return Scaffold(
 
       appBar: AppBar(
@@ -134,7 +137,7 @@ class _ReportPageState
 
           Expanded(
 
-            child: reportData.isEmpty
+            child: sortedEntries.isEmpty
 
                 ? const Center(
               child: Text(
@@ -145,17 +148,19 @@ class _ReportPageState
                 : ListView.builder(
 
               itemCount:
-              reportData.length,
+              sortedEntries.length,
 
               itemBuilder:
                   (context, index) {
 
-                final key =
-                reportData.keys
-                    .elementAt(index);
+                    final entry =
+                    sortedEntries[index];
 
-                final value =
-                reportData[key]!;
+                    final key =
+                        entry.key;
+
+                    final value =
+                        entry.value;
 
                 return Card(
 
