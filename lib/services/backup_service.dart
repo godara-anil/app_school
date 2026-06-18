@@ -36,6 +36,8 @@ class BackupService {
 
       final backupData = {
 
+        "backupVersion": 2,
+
         "expenses": expenses.map((e) {
 
           return {
@@ -55,6 +57,7 @@ class BackupService {
 
           return {
 
+            "key": a.key,
             "name": a.name,
             "type": a.type,
             "openingBalance":
@@ -67,6 +70,7 @@ class BackupService {
 
           return {
 
+            "key": s.key,
             "session": s.session,
             "isActive": s.isActive,
             "isLocked": s.isLocked,
@@ -137,6 +141,33 @@ class BackupService {
       final data =
       jsonDecode(jsonString);
 
+      final sessionData =
+      List<dynamic>.from(
+        data['sessions'] ?? [],
+      );
+
+      final accountData =
+      List<dynamic>.from(
+        data['accounts'] ?? [],
+      );
+
+      final expenseData =
+      List<dynamic>.from(
+        data['expenses'] ?? [],
+      );
+
+      final sourceSessionKeys =
+      _getSourceKeys(sessionData);
+
+      final sourceAccountKeys =
+      _getSourceKeys(accountData);
+
+      _validateTransactionReferences(
+        expenses: expenseData,
+        sessionKeys: sourceSessionKeys,
+        accountKeys: sourceAccountKeys,
+      );
+
       // CLEAR OLD DATA
 
       await Boxes.getTransactions().flush();
@@ -151,7 +182,11 @@ class BackupService {
 
       // RESTORE SESSIONS
 
-      for (var s in data['sessions']) {
+      final sessionKeyMap = <int, int>{};
+
+      for (var i = 0; i < sessionData.length; i++) {
+
+        final s = sessionData[i];
 
         final session = Sessions()
 
@@ -160,8 +195,13 @@ class BackupService {
           ..isLocked =
               s['isLocked'] ?? false;
 
+        final newKey =
         await Sess.getTransactions()
             .add(session);
+
+        sessionKeyMap[
+          sourceSessionKeys[i]
+        ] = newKey;
       }
 
       // RESTORE CATEGORIES
@@ -186,7 +226,11 @@ class BackupService {
 
       // RESTORE ACCOUNTS
 
-      for (var a in data['accounts']) {
+      final accountKeyMap = <int, int>{};
+
+      for (var i = 0; i < accountData.length; i++) {
+
+        final a = accountData[i];
 
         final account = Account(
           name: a['name'],
@@ -196,14 +240,46 @@ class BackupService {
           type: a['type'],
         );
 
+        final newKey =
         await AccountsBox
             .getAccounts()
             .add(account);
+
+        accountKeyMap[
+          sourceAccountKeys[i]
+        ] = newKey;
       }
 
       // RESTORE TRANSACTIONS
 
-      for (var e in data['expenses']) {
+      for (var e in expenseData) {
+
+        final oldSessionKey =
+        _readInt(e['sessionKey']);
+
+        final oldAccountKey =
+        _readInt(e['accountId']);
+
+        final newSessionKey =
+        oldSessionKey == null
+            ? null
+            : sessionKeyMap[oldSessionKey];
+
+        final newAccountKey =
+        accountKeyMap[oldAccountKey];
+
+        if (oldSessionKey != null &&
+            newSessionKey == null) {
+          throw const FormatException(
+            'Could not restore a transaction session relationship.',
+          );
+        }
+
+        if (newAccountKey == null) {
+          throw const FormatException(
+            'Could not restore a transaction account relationship.',
+          );
+        }
 
         final expense = Expenses()
 
@@ -216,8 +292,9 @@ class BackupService {
             e['date'],
           )
           ..isExpense = e['isExpense']
-          ..sessionKey = e['sessionKey']
-          ..accountId = e['accountId']
+          ..sessionKey = newSessionKey
+          ..accountId = newAccountKey
+              .toString()
           ..remarks = e['remarks'];
 
         await Boxes
@@ -233,5 +310,83 @@ class BackupService {
 
       return false;
     }
+  }
+
+  static List<int> _getSourceKeys(
+      List<dynamic> records,
+      ) {
+
+    final keys = <int>[];
+    final seenKeys = <int>{};
+
+    for (var i = 0; i < records.length; i++) {
+
+      final record = records[i];
+      final key =
+      _readInt(record['key']) ?? i;
+
+      if (!seenKeys.add(key)) {
+        throw const FormatException(
+          'Backup contains duplicate record keys.',
+        );
+      }
+
+      keys.add(key);
+    }
+
+    return keys;
+  }
+
+  static void _validateTransactionReferences({
+    required List<dynamic> expenses,
+    required List<int> sessionKeys,
+    required List<int> accountKeys,
+  }) {
+
+    final validSessionKeys =
+    sessionKeys.toSet();
+
+    final validAccountKeys =
+    accountKeys.toSet();
+
+    for (final expense in expenses) {
+
+      final sessionKey =
+      _readInt(expense['sessionKey']);
+
+      final accountKey =
+      _readInt(expense['accountId']);
+
+      if (sessionKey != null &&
+          !validSessionKeys.contains(
+            sessionKey,
+          )) {
+        throw const FormatException(
+          'A transaction references a missing session.',
+        );
+      }
+
+      if (accountKey == null ||
+          !validAccountKeys.contains(
+            accountKey,
+          )) {
+        throw const FormatException(
+          'A transaction references a missing account.',
+        );
+      }
+    }
+  }
+
+  static int? _readInt(
+      dynamic value,
+      ) {
+
+    if (value is int) {
+      return value;
+    }
+
+    return int.tryParse(
+      value?.toString() ?? '',
+    );
   }
 }
