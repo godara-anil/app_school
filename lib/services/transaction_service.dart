@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:app_school/boxes.dart';
 import 'package:app_school/model/Expenses.dart';
-
 
 class TransactionService {
   // ADD TRANSACTION
@@ -15,9 +12,7 @@ class TransactionService {
     required String accountId,
     String? remarks,
   }) async {
-
     final expense = Expenses()
-
       ..amount = amount
       ..category = category
       ..isExpense = isExpense
@@ -39,7 +34,6 @@ class TransactionService {
     required String accountId,
     String? remarks,
   }) async {
-
     expense
       ..amount = amount
       ..category = category
@@ -53,26 +47,25 @@ class TransactionService {
 
   // DELETE TRANSACTION
   static Future<void> deleteTransaction(
-      Expenses expense,
-      ) async {
-
+    Expenses expense,
+  ) async {
     await expense.delete();
   }
 
   // GET SESSION TRANSACTIONS
-  static List<Expenses> getSessionTransactions(int sessionKey,) {
-
-    final transactions =
-    Boxes.getTransactions()
+  static List<Expenses> getSessionTransactions(
+    int sessionKey,
+  ) {
+    final transactions = Boxes.getTransactions()
         .values
         .where(
           (tx) => tx.sessionKey == sessionKey,
-    )
+        )
         .toList()
         .cast<Expenses>();
 
     transactions.sort(
-          (b, a) => a.date.compareTo(b.date),
+      (b, a) => a.date.compareTo(b.date),
     );
 
     return transactions;
@@ -83,20 +76,16 @@ class TransactionService {
     required int sessionKey,
     required String accountId,
   }) {
-
-    final transactions =
-    Boxes.getTransactions()
+    final transactions = Boxes.getTransactions()
         .values
         .where(
-          (tx) =>
-      tx.sessionKey == sessionKey &&
-          tx.accountId == accountId,
-    )
+          (tx) => tx.sessionKey == sessionKey && tx.accountId == accountId,
+        )
         .toList()
         .cast<Expenses>();
 
     transactions.sort(
-          (b, a) => a.date.compareTo(b.date),
+      (b, a) => a.date.compareTo(b.date),
     );
 
     return transactions;
@@ -104,9 +93,8 @@ class TransactionService {
 
   // GET INCOME TRANSACTIONS
   static List<Expenses> getIncomeTransactions(
-      int sessionKey,
-      ) {
-
+    int sessionKey,
+  ) {
     return getSessionTransactions(sessionKey)
         .where((tx) => !tx.isExpense && isTransfer(tx))
         .toList();
@@ -114,20 +102,19 @@ class TransactionService {
 
   // GET EXPENSE TRANSACTIONS
   static List<Expenses> getExpenseTransactions(
-      int sessionKey,
-      ) {
-
+    int sessionKey,
+  ) {
     return getSessionTransactions(sessionKey)
         .where((tx) => tx.isExpense && isTransfer(tx))
         .toList();
   }
 
   static double getNetBalance(
-      List<Expenses> transactions,
-      ) {
-
-    return transactions.fold<double>( 0,
-          (previousValue, transaction) {
+    List<Expenses> transactions,
+  ) {
+    return transactions.fold<double>(
+      0,
+      (previousValue, transaction) {
         if (isTransfer(transaction)) {
           return previousValue;
         }
@@ -141,12 +128,14 @@ class TransactionService {
   }
 
   static double getNetIncome(
-      List<Expenses> transactions,
-      ) {
+    List<Expenses> transactions,
+  ) {
     return transactions.fold<double>(
       0,
-          (previousValue, transaction) {
-        if (!transaction.isExpense && !isTransfer(transaction) && !isOpeningBalance(transaction)) {
+      (previousValue, transaction) {
+        if (!transaction.isExpense &&
+            !isTransfer(transaction) &&
+            !isOpeningBalance(transaction)) {
           return previousValue + transaction.amount;
         }
 
@@ -156,14 +145,14 @@ class TransactionService {
   }
 
   static double getNetExpense(
-      List<Expenses> transactions,
-      ) {
-
+    List<Expenses> transactions,
+  ) {
     return transactions.fold<double>(
       0,
-          (previousValue, transaction) {
-
-        if (transaction.isExpense && !isTransfer(transaction) && !isOpeningBalance(transaction)) {
+      (previousValue, transaction) {
+        if (transaction.isExpense &&
+            !isTransfer(transaction) &&
+            !isOpeningBalance(transaction)) {
           return previousValue + transaction.amount;
         }
 
@@ -172,20 +161,18 @@ class TransactionService {
     );
   }
 
-  static double getCashBalance(List<Expenses> transactions,) {
-
+  static double getCashBalance(
+    List<Expenses> transactions,
+  ) {
     double cashBalance = 0;
 
     for (Expenses data in transactions) {
-
       final account =
-      AccountsBox.getAccounts()
-          .get(int.tryParse(data.accountId));
+          AccountsBox.getAccounts().get(int.tryParse(data.accountId));
 
       if (account == null) continue;
 
-      final isCash =
-          account.type.toLowerCase() == "cash";
+      final isCash = account.type.toLowerCase() == "cash";
 
       if (!isCash) continue;
 
@@ -200,19 +187,15 @@ class TransactionService {
   }
 
   static double getBankBalance(
-      List<Expenses> transactions,
-      ) {
-
+    List<Expenses> transactions,
+  ) {
     double bankBalance = 0;
 
     for (Expenses data in transactions) {
-
       final account =
-      AccountsBox.getAccounts()
-          .get(int.tryParse(data.accountId));
+          AccountsBox.getAccounts().get(int.tryParse(data.accountId));
       if (account == null) continue;
-      final isCash =
-          account.type.toLowerCase() == "cash";
+      final isCash = account.type.toLowerCase() == "cash";
       if (isCash) continue;
       if (data.isExpense) {
         bankBalance -= data.amount;
@@ -222,20 +205,20 @@ class TransactionService {
     }
     return bankBalance;
   }
-  static List<Expenses> getTransactionsBySession(
-      int sessionKey,
-      ) {
 
+  static List<Expenses> getTransactionsBySession(
+    int sessionKey,
+  ) {
     final transactions = Boxes.getTransactions()
         .values
         .where(
           (e) => e.sessionKey == sessionKey,
-    )
+        )
         .toList()
         .cast<Expenses>();
 
     transactions.sort(
-          (b, a) => a.date.compareTo(b.date),
+      (b, a) => a.date.compareTo(b.date),
     );
 
     return transactions;
@@ -245,11 +228,9 @@ class TransactionService {
     required double openingBalance,
     required List<Expenses> transactions,
   }) {
-
     double balance = openingBalance;
 
     for (var transaction in transactions) {
-
       if (transaction.isExpense) {
         balance -= transaction.amount;
       } else {
@@ -270,6 +251,7 @@ class TransactionService {
     String? remarks1,
     String? remarks2,
   }) async {
+    final transferId = DateTime.now().microsecondsSinceEpoch.toString();
 
     // Money leaving source account
     final expense = Expenses()
@@ -279,7 +261,8 @@ class TransactionService {
       ..date = date
       ..sessionKey = sessionKey
       ..accountId = fromAccountId
-      ..remarks = remarks2;
+      ..remarks = remarks2
+      ..transferId = transferId;
 
     // Money entering destination account
     final income = Expenses()
@@ -289,30 +272,121 @@ class TransactionService {
       ..date = date
       ..sessionKey = sessionKey
       ..accountId = toAccountId
-      ..remarks = remarks1;
+      ..remarks = remarks1
+      ..transferId = transferId;
 
     await Boxes.getTransactions().add(expense);
     await Boxes.getTransactions().add(income);
   }
 
+  static Future<void> updateTransfer({
+    required String transferId,
+    required double amount,
+    required DateTime date,
+    required String fromAccountId,
+    required String toAccountId,
+    String? remarks,
+  }) async {
+    final pair = getTransferPair(transferId);
+    if (pair == null) {
+      throw StateError('Transfer pair not found.');
+    }
+
+    final source = pair.source;
+    final destination = pair.destination;
+
+    source
+      ..amount = amount
+      ..category = "Transfer"
+      ..isExpense = true
+      ..date = date
+      ..accountId = fromAccountId
+      ..remarks = _buildTransferRemarks(
+        prefix: 'Transfer To',
+        accountId: toAccountId,
+        remarks: remarks,
+      )
+      ..transferId = transferId;
+
+    destination
+      ..amount = amount
+      ..category = "Transfer"
+      ..isExpense = false
+      ..date = date
+      ..accountId = toAccountId
+      ..remarks = _buildTransferRemarks(
+        prefix: 'Transfer From',
+        accountId: fromAccountId,
+        remarks: remarks,
+      )
+      ..transferId = transferId;
+
+    await source.save();
+    await destination.save();
+  }
+
+  static Future<void> deleteTransfer(
+    String transferId,
+  ) async {
+    final pair = getTransferPair(transferId);
+    if (pair == null) {
+      throw StateError('Transfer pair not found.');
+    }
+
+    await Boxes.getTransactions().deleteAll(
+      [
+        pair.source.key,
+        pair.destination.key,
+      ],
+    );
+  }
+
+  static TransferPair? getTransferPair(
+    String transferId,
+  ) {
+    final entries = Boxes.getTransactions()
+        .values
+        .where(
+          (tx) => tx.category == "Transfer" && tx.transferId == transferId,
+        )
+        .toList()
+        .cast<Expenses>();
+
+    if (entries.length != 2) {
+      return null;
+    }
+
+    final sourceEntries = entries.where((tx) => tx.isExpense).toList();
+    final destinationEntries = entries.where((tx) => !tx.isExpense).toList();
+
+    if (sourceEntries.length != 1 || destinationEntries.length != 1) {
+      return null;
+    }
+
+    return TransferPair(
+      source: sourceEntries.single,
+      destination: destinationEntries.single,
+    );
+  }
+
   static bool isTransfer(
-      Expenses tx,
-      ) {
+    Expenses tx,
+  ) {
     return tx.category == "Transfer";
   }
+
   static bool isOpeningBalance(
-      Expenses tx,
-      ) {
+    Expenses tx,
+  ) {
     return tx.category == "Opening Balance";
   }
 
   static double getNetTransferBalance(
-      List<Expenses> transactions,
-      ) {
+    List<Expenses> transactions,
+  ) {
     double transferBalance = 0;
 
     for (final tx in transactions) {
-
       if (tx.category != "Transfer") {
         continue;
       }
@@ -326,4 +400,32 @@ class TransactionService {
 
     return transferBalance;
   }
+
+  static String _buildTransferRemarks({
+    required String prefix,
+    required String accountId,
+    String? remarks,
+  }) {
+    final account = AccountsBox.getAccounts().get(
+      int.tryParse(accountId),
+    );
+    final accountName = account?.name ?? accountId;
+    final trimmedRemarks = remarks?.trim() ?? '';
+
+    if (trimmedRemarks.isEmpty) {
+      return '$prefix: $accountName';
+    }
+
+    return '$prefix: $accountName $trimmedRemarks';
+  }
+}
+
+class TransferPair {
+  final Expenses source;
+  final Expenses destination;
+
+  const TransferPair({
+    required this.source,
+    required this.destination,
+  });
 }
